@@ -95,14 +95,14 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               {/* <Route path="/login" element={<Login />} /> */}
-              <Route path="/_cpanel" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/blog" element={<Blog mode={"all"} />} />
-              <Route path="/new" element={<CreateBlog />} />
-              <Route path="/edit/:id" element={<EditBlog />} />
-              <Route path="/view/:id" element={<Blog mode={"single"} />} />
-              <Route path="/motorsports" element={<Cars />} />
-              <Route path="/weightlifting" element={<Weightlifting />} />
-              <Route path="/industry" element={<Industry />} />
+              <Route path="/portfolio/_cpanel" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/portfolio/blog" element={<Blog mode={"all"} />} />
+              <Route path="/portfolio/new" element={<CreateBlog />} />
+              <Route path="/portfolio/edit/:id" element={<EditBlog />} />
+              <Route path="/portfolio/view/:id" element={<Blog mode={"single"} />} />
+              <Route path="/portfolio/motorsports" element={<Cars />} />
+              <Route path="/portfolio/weightlifting" element={<Weightlifting />} />
+              <Route path="/portfolio/industry" element={<Industry />} />
             </Routes>
           {/* </AuthContextProvider> */}
 
