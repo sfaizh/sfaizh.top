@@ -14,7 +14,7 @@ import Industry from "./components/industry-experience/chakra_industry.js";
 import { ChakraProvider, ColorModeScript, extendTheme } from "@chakra-ui/react";
 import theme from "./utils/theme.js";
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter  as Router, Routes, Route, Navigate } from "react-router-dom";
 import React, { Component, useEffect, useState } from "react";
 
 import Blog from "./components/blog/chakra_blog.js";
@@ -90,19 +90,19 @@ function App() {
     <ChakraProvider theme={extendTheme(theme)}>
       <ColorModeScript initialColorMode="light"></ColorModeScript>
       <div className="app-wrapper">
-        <Router>
+        <Router baseline='/'>
           {/* <AuthContextProvider> */}
             <Routes>
-              <Route path="/portfolio" element={<Home />} />
+              <Route path="/" element={<Home />} />
               {/* <Route path="/login" element={<Login />} /> */}
-              <Route path="/portfolio/_cpanel" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/portfolio/blog" element={<Blog mode={"all"} />} />
-              <Route path="/portfolio/new" element={<CreateBlog />} />
-              <Route path="/portfolio/edit/:id" element={<EditBlog />} />
-              <Route path="/portfolio/view/:id" element={<Blog mode={"single"} />} />
-              <Route path="/portfolio/motorsports" element={<Cars />} />
-              <Route path="/portfolio/weightlifting" element={<Weightlifting />} />
-              <Route path="/portfolio/industry" element={<Industry />} />
+              <Route path="/_cpanel" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/blog" element={<Blog mode={"all"} />} />
+              <Route path="/new" element={<CreateBlog />} />
+              <Route path="/edit/:id" element={<EditBlog />} />
+              <Route path="/view/:id" element={<Blog mode={"single"} />} />
+              <Route path="/motorsports" element={<Cars />} />
+              <Route path="/weightlifting" element={<Weightlifting />} />
+              <Route path="/industry" element={<Industry />} />
             </Routes>
           {/* </AuthContextProvider> */}
 
