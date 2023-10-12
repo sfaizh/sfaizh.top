@@ -91,20 +91,20 @@ function App() {
       <ColorModeScript initialColorMode="light"></ColorModeScript>
       <div className="app-wrapper">
         <HashRouter basename='/portfolio'>
-          {/* <AuthContextProvider> */}
             <Routes>
-              <Route path="/" element={<Home />} />
-              {/* <Route path="/login" element={<Login />} /> */}
-              <Route path="/_cpanel" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/blog" element={<Blog mode={"all"} />} />
-              <Route path="/new" element={<CreateBlog />} />
-              <Route path="/edit/:id" element={<EditBlog />} />
-              <Route path="/view/:id" element={<Blog mode={"single"} />} />
-              <Route path="/motorsports" element={<Cars />} />
-              <Route path="/weightlifting" element={<Weightlifting />} />
-              <Route path="/industry" element={<Industry />} />
+              {/* <AuthContextProvider> */}
+                <Route path="/" element={<Home />} />
+                {/* <Route path="/login" element={<Login />} /> */}
+                <Route path="/_cpanel" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/blog" element={<Blog mode={"all"} />} />
+                <Route path="/new" element={<CreateBlog />} />
+                <Route path="/edit/:id" element={<EditBlog />} />
+                <Route path="/view/:id" element={<Blog mode={"single"} />} />
+                <Route path="/motorsports" element={<Cars />} />
+                <Route path="/weightlifting" element={<Weightlifting />} />
+                <Route path="/industry" element={<Industry />} />
+              {/* </AuthContextProvider> */}
             </Routes>
-          {/* </AuthContextProvider> */}
         </HashRouter>
       </div>
     </ChakraProvider>
