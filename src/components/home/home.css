@@ -1,0 +1,26 @@
+.social-icons {
+    z-index: 99;
+}
+.footer-wrapper {
+    /* padding: 50px; */
+}
+.banner-wide {
+    background-image: url("../../assets/img/banner.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: bottom;
+}
+.header-logo {
+    background-image: url("../../assets/img/header-logo.png");
+    background-repeat: no-repeat;
+    width: 65px;
+    height: 65px;
+    background-size: 100%;
+}
+.header-logo-dark {
+    background-image: url("../../assets/img/header-logo-dark.png");
+    background-repeat: no-repeat;
+    width: 65px;
+    height: 65px;
+    background-size: 100%;
+}

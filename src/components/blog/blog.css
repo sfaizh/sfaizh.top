@@ -1,0 +1,14 @@
+.blog-banner {
+    background-image: url("../../assets/img/blog-banner.svg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: bottom;
+    height: 165px;
+}
+.blog-banner-dark {
+    background-image: url("../../assets/img/blog-banner-dark.svg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: bottom;
+    height: 165px;
+}
