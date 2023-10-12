@@ -15,15 +15,15 @@ const Header = () => {
     return (
         <Flex w="100%">
             <Heading ml="8" size="md" fontWeight="semibold" color="cyan.400">
-                <Link href="/">
+                <Link href="/portfolio">
                     { (logoMode == "dark") ? <Box className="header-logo"></Box> : <Box className="header-logo-dark"></Box>}
                 </Link>
             </Heading>
             <Spacer></Spacer>
             <HStack spacing="20px">
-                <Link href="/_cpanel">
+                {/* <Link href="/_cpanel">
                     <IconButton ml={5} icon={<FaHive/>} isRound="true"></IconButton>
-                </Link>
+                </Link> */}
                 <IconButton ml={8} icon={isDark ? <FaSun/> : <FaMoon/>} isRound="true" onClick={toggleColorMode}></IconButton>
             </HStack>
 

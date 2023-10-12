@@ -1,4 +1,4 @@
 {
-    "localhost": "http://localhost:8080",
+    "localhost": "http://localhost:3000",
     "production": "https://public-profile-backend-177cfb33de27.herokuapp.com"
 }
