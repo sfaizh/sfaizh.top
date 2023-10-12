@@ -6,7 +6,7 @@ const Header = props => {
         <div className="blank-header">
             {/* <img src="assets/img/1641368271683.jpg"></img> */}
             <div className="row header-span justify-content-center pt-5">
-                    <h1><a href="/portfolio">60% of the time, it works every time</a></h1>
+                    <h1><a href="/">60% of the time, it works every time</a></h1>
             </div>
             <div className="row">
                 <div className="navbar navbar-expand-lg navbar-dark justify-content-center">
@@ -16,19 +16,19 @@ const Header = props => {
                     {/* <div className="collapse navbar-collapse" id="navbarNav"> */}
                         <ul className="navbar-nav">
                             <li className="nav-item">
-                                <a className="nav-link disabled" href="/portfolio/blog">Blog</a>
+                                <a className="nav-link disabled" href="#/blog">Blog</a>
                             </li>
                             <li className={`nav-item ${(props.current == "Cars") ? "active" : ""}`}>
-                                <a className="nav-link" href="/portfolio/motorsports">Motorsports <span className="sr-only">(current)</span></a>
+                                <a className="nav-link" href="#/motorsports">Motorsports <span className="sr-only">(current)</span></a>
                             </li>
                             <li className={`nav-item ${(props.current == "Weightlifting") ? "active" : ""}`}>
-                                <a className="nav-link disabled" href="/portfolio/weightlifting">Weightlifting</a>
+                                <a className="nav-link disabled" href="#/weightlifting">Weightlifting</a>
                             </li>
                             <li className={`nav-item ${(props.current == "Travelling") ? "active" : ""}`}>
-                                <a className="nav-link disabled" href="/portfolio/travelling">Travelling</a>
+                                <a className="nav-link disabled" href="#/travelling">Travelling</a>
                             </li>
                             <li className={`nav-item ${(props.current == "Industry Experience") ? "active" : ""}`}>
-                                <a className="nav-link" href="/portfolio/industry">Industry Experience</a>
+                                <a className="nav-link" href="#/industry">Industry Experience</a>
                             </li>
                         </ul>
                     {/* </div> */}

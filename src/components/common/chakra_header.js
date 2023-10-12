@@ -15,7 +15,7 @@ const Header = () => {
     return (
         <Flex w="100%">
             <Heading ml="8" size="md" fontWeight="semibold" color="cyan.400">
-                <Link href="/portfolio">
+                <Link href="/">
                     { (logoMode == "dark") ? <Box className="header-logo"></Box> : <Box className="header-logo-dark"></Box>}
                 </Link>
             </Heading>

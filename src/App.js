@@ -90,7 +90,7 @@ function App() {
     <ChakraProvider theme={extendTheme(theme)}>
       <ColorModeScript initialColorMode="light"></ColorModeScript>
       <div className="app-wrapper">
-        <HashRouter basename='/'>
+        <HashRouter baseline='/portfolio'>
           {/* <AuthContextProvider> */}
               <Route path="/" element={<Home />} />
               {/* <Route path="/login" element={<Login />} /> */}
