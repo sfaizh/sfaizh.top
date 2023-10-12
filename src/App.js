@@ -14,7 +14,7 @@ import Industry from "./components/industry-experience/chakra_industry.js";
 import { ChakraProvider, ColorModeScript, extendTheme } from "@chakra-ui/react";
 import theme from "./utils/theme.js";
 
-import { HashRouter  as Router, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Route } from "react-router-dom";
 import React, { Component, useEffect, useState } from "react";
 
 import Blog from "./components/blog/chakra_blog.js";
@@ -90,9 +90,8 @@ function App() {
     <ChakraProvider theme={extendTheme(theme)}>
       <ColorModeScript initialColorMode="light"></ColorModeScript>
       <div className="app-wrapper">
-        <Router baseline='/'>
+        <HashRouter basename='/'>
           {/* <AuthContextProvider> */}
-            <Routes>
               <Route path="/" element={<Home />} />
               {/* <Route path="/login" element={<Login />} /> */}
               <Route path="/_cpanel" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
@@ -103,10 +102,9 @@ function App() {
               <Route path="/motorsports" element={<Cars />} />
               <Route path="/weightlifting" element={<Weightlifting />} />
               <Route path="/industry" element={<Industry />} />
-            </Routes>
           {/* </AuthContextProvider> */}
 
-        </Router>
+        </HashRouter>
       </div>
     </ChakraProvider>
 
