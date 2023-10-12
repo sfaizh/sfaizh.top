@@ -90,10 +90,10 @@ function App() {
     <ChakraProvider theme={extendTheme(theme)}>
       <ColorModeScript initialColorMode="light"></ColorModeScript>
       <div className="app-wrapper">
-        <Router basename={'/portfolio'}>
+        <Router>
           {/* <AuthContextProvider> */}
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/portfolio" element={<Home />} />
               {/* <Route path="/login" element={<Login />} /> */}
               <Route path="/portfolio/_cpanel" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="/portfolio/blog" element={<Blog mode={"all"} />} />
