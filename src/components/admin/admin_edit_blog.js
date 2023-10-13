@@ -105,7 +105,7 @@ const EditBlog = props => {
     const viewPost = async e => {
         e.preventDefault();
 
-        nav("//view/" + id)
+        nav("/view/" + id)
     }
 
 

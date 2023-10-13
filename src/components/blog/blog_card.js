@@ -51,7 +51,7 @@ const Blog_card = props => {
                             <Markdown source={trim(props.card.description, 100)} />
                             ...
                             <br /><br />
-                            <Link to={"//view/" + props.card._id}>
+                            <Link to={"/view/" + props.card._id}>
                                 <Button
                                     colorScheme="gray"
                                     size="sm">More
