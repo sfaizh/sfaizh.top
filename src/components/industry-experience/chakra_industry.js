@@ -78,7 +78,7 @@ const Industry = () => {
                             {posts.data.map(function(data, i) {
                                 return <Industry_card key={i} card={ data } />
                             })}
-                            {/* <Industry_card card={{ logo: "assets/img/cisco-logo.jpg", title: "Technical Solutions Specialist", subtitle: "Cisco Infrastructure Software Group (Data Center)", description: "The Technical Solutions Specialist's (TSS) primary responsibility is to provide technical guidance and sales support on the Cisco CISG (Data Center) Portfolio and how technical solutions can be applied to solve business problems.", footer: "Cisco (Aug 2022 - Present)" }} /> */}
+                            {/* <Industry_card card={{ logo: "/img/cisco-logo.jpg", title: "Technical Solutions Specialist", subtitle: "Cisco Infrastructure Software Group (Data Center)", description: "The Technical Solutions Specialist's (TSS) primary responsibility is to provide technical guidance and sales support on the Cisco CISG (Data Center) Portfolio and how technical solutions can be applied to solve business problems.", footer: "Cisco (Aug 2022 - Present)" }} /> */}
                         </VStack>
                     </HStack>
                 </VStack>

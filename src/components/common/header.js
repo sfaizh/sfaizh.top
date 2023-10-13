@@ -4,7 +4,7 @@ const Header = props => {
 
     return (
         <div className="blank-header">
-            {/* <img src="assets/img/1641368271683.jpg"></img> */}
+            {/* <img src="/img/1641368271683.jpg"></img> */}
             <div className="row header-span justify-content-center pt-5">
                     <h1><a href="/">60% of the time, it works every time</a></h1>
             </div>

@@ -36,7 +36,7 @@ const Home = () => {
                         <p>Bachelor of Engineering, Diploma in Professional Engineering Practice (ICTE Software)</p>
                     </div>
                     <div className="col-2 intro-section">
-                        <img height="125px" src="assets/img/uts-logo.jpg" />
+                        <img height="125px" src="/img/uts-logo.jpg" />
                     </div>
                 </div>
                 <div className="row about-section justify-content-center">

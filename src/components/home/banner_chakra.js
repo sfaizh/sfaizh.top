@@ -49,7 +49,7 @@ const Banner = props => {
                     <Box pb="0px" pt="50" align="center">
                         <Image
                             borderRadius="full"
-                            src="assets/img/banner-logo.jpg"
+                            src="/img/banner-logo.jpg"
                             alt="me"
                             boxSize="150"/>
                     </Box>
