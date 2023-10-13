@@ -34,13 +34,13 @@ const Categories = () => {
                     <Text color="white" p="4" fontSize="xl" fontWeight="semibold">Travelling</Text>
                 </Box>
 
-                <Link href="#/industry">
+                <Link href="/industry">
                     <Box rounded="xl" height="200px" pt="5" bg="#344146" _hover={{ bg: "#778997", }}>
                         <Icon color="white" p="4" as={FaIndustry} w="24" h="24" />
                         <Text color="white" p="4" fontSize="xl" fontWeight="semibold">Industry Experience</Text>
                     </Box>
                 </Link>
-                <Link href="#/blog">
+                <Link href="/blog">
                     <Box rounded="xl" height="200px" pt="5" bg="#344146" _hover={{ bg: "#778997", }}>
                         <Icon color="white" p="4" as={FaBlog} w="24" h="24" />
                         <Text color="white" p="4" fontSize="xl" fontWeight="semibold">Blog</Text>

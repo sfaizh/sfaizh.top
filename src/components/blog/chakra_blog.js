@@ -35,7 +35,7 @@ const Blog = props => {
                     xxl: "77.5rem"
                 }}
             >
-                <Link href="#/blog"><Heading pb={5} align="center" as="h1" size="4xl">Blog</Heading></Link>
+                <Link href="/blog"><Heading pb={5} align="center" as="h1" size="4xl">Blog</Heading></Link>
                 {/* { (logoMode == "dark") ? <Box className="blog-banner" pb="0px" align="center"></Box> : <Box className="blog-banner-dark" pb="0px" align="center"></Box>} */}
                 {/* <Box className="blog-banner" pb="0px" align="center"></Box> */}
                 <Text pb={5} align="center" fontSize="sm">Random snippets of stuff I do</Text>

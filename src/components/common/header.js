@@ -16,19 +16,19 @@ const Header = props => {
                     {/* <div className="collapse navbar-collapse" id="navbarNav"> */}
                         <ul className="navbar-nav">
                             <li className="nav-item">
-                                <a className="nav-link disabled" href="#/blog">Blog</a>
+                                <a className="nav-link disabled" href="/blog">Blog</a>
                             </li>
                             <li className={`nav-item ${(props.current == "Cars") ? "active" : ""}`}>
-                                <a className="nav-link" href="#/motorsports">Motorsports <span className="sr-only">(current)</span></a>
+                                <a className="nav-link" href="/motorsports">Motorsports <span className="sr-only">(current)</span></a>
                             </li>
                             <li className={`nav-item ${(props.current == "Weightlifting") ? "active" : ""}`}>
-                                <a className="nav-link disabled" href="#/weightlifting">Weightlifting</a>
+                                <a className="nav-link disabled" href="/weightlifting">Weightlifting</a>
                             </li>
                             <li className={`nav-item ${(props.current == "Travelling") ? "active" : ""}`}>
-                                <a className="nav-link disabled" href="#/travelling">Travelling</a>
+                                <a className="nav-link disabled" href="/travelling">Travelling</a>
                             </li>
                             <li className={`nav-item ${(props.current == "Industry Experience") ? "active" : ""}`}>
-                                <a className="nav-link" href="#/industry">Industry Experience</a>
+                                <a className="nav-link" href="/industry">Industry Experience</a>
                             </li>
                         </ul>
                     {/* </div> */}
