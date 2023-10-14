@@ -1,4 +1,4 @@
-# Portfolio: Collection (Front End)
+# Portfolio: Collection (Front-End)
 ### Built using React, MongoDB, and Chakra UI
 Backend [https://github.com/FaizanH/public-profile-backend](public-profile-backend)
 
