@@ -3,11 +3,13 @@ import { selectCurrentToken } from "../../features/auth/authSlice"
 import { jwtDecode } from 'jwt-decode'
 
 const useAuth = () => {
+    // Use http-only cookies for this instead of redux
     const token = useSelector(selectCurrentToken)
     let isManager = false
     let isAdmin = false
     let status = "Employee"
 
+    // login problem is here - failing
     if (token) {
         const decoded = jwtDecode(token)
         const { username, roles } = decoded.UserInfo

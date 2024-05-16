@@ -20,15 +20,23 @@ import {
     Checkbox,
     CheckboxGroup
 } from '@chakra-ui/react'
-import { UserAuth } from '../../context/AuthContext';
+// import { UserAuth } from '../../context/AuthContext';
+import useAuth from '../../utils/hooks/useAuth'
 import { useNavigate, Link } from 'react-router-dom';
 import axios from "axios";
 import deployment from "../../deployment.json";
 
+import { useDispatch } from 'react-redux'
+import { logOut } from '../../features/auth/authSlice.js'
+import { useSendLogoutMutation } from '../../features/auth/authApiSlice'
+
 const Admin = props => {
-    const { user, logout } = UserAuth();
+    const { username, isAdmin } = useAuth();
     const [posts, setPosts] = useState(null);
     const nav = useNavigate();
+
+    const dispatch = useDispatch()
+    const [logout, { isLoading }] = useSendLogoutMutation()
 
     const getPosts = () => {
         // Set loading modifiers
@@ -53,8 +61,13 @@ const Admin = props => {
         e.preventDefault();
 
         try {
-            await logout();
-            nav("/");
+            // use reducer
+            await logout().then(
+                dispatch(logOut())
+            )
+            // await axios.post(deployment.production + "/logout").then(
+            //     nav("/")
+            // )
         } catch (e) {
             console.log(e.message);
         }

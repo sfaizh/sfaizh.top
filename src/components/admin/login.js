@@ -2,9 +2,6 @@ import React, { useEffect, useState } from 'react';
 import "../admin/admin.css";
 import Header from "../common/chakra_header.js";
 import Footer from "../common/footer.js";
-import deployment from "../../deployment.json";
-import axios from "axios";
-import { Navigate } from "react-router";
 // import {auth, validate, logout, register} from "./auth.js";
 
 import { VStack, HStack, Flex, Box, Heading, Spacer, Text } from "@chakra-ui/layout";

@@ -58,16 +58,19 @@ function App() {
               <Route path="/motorsports" element={<Cars />} />
               {/* <Route path="/weightlifting" element={<Weightlifting />} /> */}
               <Route path="/industry" element={<Industry />} />
+
               <Route path="/login" element={<Login />} />
+              
               {/* protected routes */}
               <Route element={<PersistLogin />}>
-                <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}>
+
+                {/* <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}> */}
                   {/* <Route element={<Prefetch />}> */}
-                    <Route element={<RequireAuth allowedRoles={[ROLES.Manager, ROLES.Admin]} />}>
+                    <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}>
                       <Route path="/_cpanel" element={<Admin />} />
                     </Route>
                   {/* </Route> */}
-                </Route>
+                {/* </Route> */}
               </Route>
             </Route>
           </Routes>

@@ -1,4 +1,4 @@
-import { Outlet, Link } from "react-router-dom"
+import { Outlet, Link, useNavigate } from "react-router-dom"
 import { useEffect, useRef, useState } from 'react'
 import { useRefreshMutation } from "./authApiSlice"
 import usePersist from "../../utils/hooks/usePersist"
@@ -22,10 +22,11 @@ const PersistLogin = () => {
         error
     }] = useRefreshMutation()
 
+    const navigate = useNavigate()
 
     useEffect(() => {
 
-        if (effectRan.current === true || process.env.NODE_ENV !== 'development') { // React 18 Strict Mode
+        if (effectRan.current === true) { // React 18 Strict Mode
 
             const verifyRefreshToken = async () => {
                 console.log('verifying refresh token')
