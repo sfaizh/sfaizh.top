@@ -20,15 +20,15 @@ const Categories = () => {
             </Box>
 
             {/* <Text fontSize="2xl">Test</Text> */}
-            <SimpleGrid columns={{ base: 1, sm: 1, md: 2, lg: 4, xl: 5}} spacing="10px"  align="center">
-                <Box rounded="xl" height="200px" pt="5" bg="gray.400">
+            <SimpleGrid columns={{ base: 1, sm: 1, md: 2, lg: 3, xl: 3}} spacing="10px"  align="center">
+                {/* <Box rounded="xl" height="200px" pt="5" bg="gray.400">
                     <Icon color="white" pt="0" as={MdSportsMotorsports} w="24" h="24" />
                     <Text color="white" p="4" fontSize="xl" fontWeight="semibold">Motorsports</Text>
                 </Box>
                 <Box rounded="xl" height="200px" pt="5" bg="gray.400">
                     <Icon color="white" p="4" as={GiWeightLiftingUp} w="24" h="24" />
                     <Text color="white" p="4" fontSize="xl" fontWeight="semibold">Weightlifting</Text>
-                </Box>
+                </Box> */}
                 <Box rounded="xl" height="200px" pt="5" bg="gray.400">
                     <Icon color="white" p="4" as={MdCardTravel} w="24" h="24" />
                     <Text color="white" p="4" fontSize="xl" fontWeight="semibold">Travelling</Text>

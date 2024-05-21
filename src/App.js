@@ -49,18 +49,14 @@ function App() {
       <div className="app-wrapper">
           <Routes>
             <Route path="/" element={<Layout />}>
-              <Route index element={<Home />}/>
               {/* public routes */}
-              <Route path="/blog" element={<Blog mode={"all"} />} />
-              <Route path="/new" element={<CreateBlog />} />
-              <Route path="/edit/:id" element={<EditBlog />} />
               <Route path="/view/:id" element={<Blog mode={"single"} />} />
+              <Route path="/new" element={<CreateBlog />} />
               <Route path="/motorsports" element={<Cars />} />
               {/* <Route path="/weightlifting" element={<Weightlifting />} /> */}
               <Route path="/industry" element={<Industry />} />
 
               <Route path="/login" element={<Login />} />
-              
               {/* protected routes */}
               <Route element={<PersistLogin />}>
 
@@ -68,7 +64,10 @@ function App() {
                   {/* <Route element={<Prefetch />}> */}
                     <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}>
                       <Route path="/_cpanel" element={<Admin />} />
+                      <Route path="/edit/:id" element={<EditBlog />} />
                     </Route>
+                    <Route path="/blog" element={<Blog mode={"all"} />} />
+                    <Route index element={<Home />}/>
                   {/* </Route> */}
                 {/* </Route> */}
               </Route>

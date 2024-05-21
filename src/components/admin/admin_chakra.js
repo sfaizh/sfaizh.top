@@ -78,7 +78,7 @@ const Admin = props => {
             {console.log(posts)}
             <Header />
             <Box align="center" pb={10}>
-                <Text pb={3} fontSize="3xl">Blog Admin</Text>
+                <Text pb={3} fontSize="3xl">Editing Blogs as {username}</Text>
                 <Button onClick={handleLogout}>Logout</Button>
             </Box>
             <Divider />

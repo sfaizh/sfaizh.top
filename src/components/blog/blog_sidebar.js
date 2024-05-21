@@ -26,24 +26,17 @@ const Blog_sidebar = props => {
                 <Input width="auto" placeholder='Search' />
             </Box>
             <Spacer />
-            <Box>
+            {/* <Box>
                 <Text fontSize="sm">FOLLOW</Text>
-            </Box>
+            </Box> */}
             <Spacer />
             <Box>
-                <Text fontSize="sm">LINKS</Text>
+                <Text fontSize="sm"><strong>LINKS</strong></Text>
             </Box>
             <Box align="center">
                 <Link href="https://www.linkedin.com/in/sfaizanh/" isExternal><Text>LinkedIn</Text></Link>
                 <Link href="https://www.instagram.com/sfaizh__/" isExternal><Text>Instagram</Text></Link>
                 <Link href="https://github.com/FaizanH" isExternal><Text>Github</Text></Link>
-            </Box>
-            <Spacer />
-            <Box>
-                <Text fontSize="sm">EMAIL</Text>
-            </Box>
-            <Box>
-                <Text>faizanh53@gmail.com</Text>
             </Box>
                 {/* Links */}
                 {/* Email */}

@@ -28,7 +28,7 @@ const Home = () => {
         // Set loading modifiers
         // props.setLoadingState(true);
         // props.setLoadingState(false);
-        axios.get(deployment.production + "/blogposts")
+        axios.get(deployment.production + "/blogposts?private=false")
             .then(r => {
                 setPosts(r.data.results);
                 // props.setLoadingState(false);
@@ -66,10 +66,11 @@ const Home = () => {
                             justifyContent="space-between"
                             flexDirection="column"
                             overflow="hidden"
-                            bg="base.d100"
+                            bg="#b4a389"
                             rounded={5}
                             flex={1}
                             p={5}
+                            color={'white'}
                             >
                             <VStack mb={6}>
                                 <Heading
@@ -85,14 +86,14 @@ const Home = () => {
 
                             <Flex justifyContent="space-between">
                                 <HStack spacing={2}>
-                                <Tag size="sm" variant="outline" colorScheme="gray">
+                                <Tag size="sm" variant="outline" color="#344146">
                                     Faizan
                                 </Tag>
                                 </HStack>
                                 <Link to={"/view/" + post._id}>
                                     <Button
-                                    colorScheme="gray"
-                                    size="sm">More
+                                    colorScheme="white"
+                                    size="sm">View
                                     </Button>
                                 </Link>
                             </Flex>

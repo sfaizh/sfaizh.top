@@ -3,6 +3,7 @@ import { Link } from '@chakra-ui/react'
 import { IconButton } from "@chakra-ui/button";
 import { Flex, StackDivider, Box, VStack, Heading, Spacer } from "@chakra-ui/layout";
 import "../home/home.css";
+import { all } from "axios";
 
 const Footer = () => {
     return (
@@ -19,7 +20,7 @@ const Footer = () => {
                         <IconButton ml={5} icon={<FaGithub/>} isRound="true"></IconButton>
                     </Link>
                 </Box>
-                <Box className="footer-wrapper">Copyright © 2022 Faizan H.</Box>
+                <Box className="footer-wrapper">Copyright © 2022 <a style={{'all': 'unset'}} href='mailto:faizanh53@gmail.com'>Faizan H.</a></Box>
             </VStack>
         </Flex>
     );

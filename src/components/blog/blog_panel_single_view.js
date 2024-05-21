@@ -5,6 +5,7 @@ import { capsFirst } from "../../utils";
 import "../home/home.css";
 import Blog_card from "./blog_card";
 import Blog_sidebar from "./blog_sidebar";
+import useAuth from '../../utils/hooks/useAuth'
 
 import {
     Container,
@@ -21,16 +22,27 @@ const ViewBlog = props => {
     const [post, setPost] = useState( null );
     const { id } = useParams();
 
+    const { username, isAdmin } = useAuth();
+
     const getPost = () => {
         // Set loading modifiers
         // props.setLoadingState(true);
         // props.setLoadingState(false);
-        axios.get(deployment.production + "/blogposts/" + id)
+        // if (isAdmin) {
+            axios.get(deployment.production + "/blogposts/" + id)
             .then(r => {
                 setPost(r);
                 // props.setLoadingState(false);
             })
             .catch(err => console.log(err));
+        // } else {
+        //     axios.get(deployment.production + "/blogposts/public/" + id)
+        //     .then(r => {
+        //         setPost(r);
+        //         // props.setLoadingState(false);
+        //     })
+        //     .catch(err => console.log(err));
+        // }
     }
 
     useEffect(()  => {

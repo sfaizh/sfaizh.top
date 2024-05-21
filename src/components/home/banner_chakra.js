@@ -57,7 +57,9 @@ const Banner = props => {
                         p={isLargerScreen ? "32" : "0"}
                         alignSelf="flex-start" pt="10px" pb="10px">
                         <Box p="5" backgroundColor="rgb(39,55,55, 0.3)" mt={isLargerScreen ? "0" : 16} align="center">
-                            <Text color="white" fontSize="5xl" fontWeight="semibold">Welcome to my site</Text>
+                            <Text color="white" fontSize="5xl" fontWeight="semibold">
+                                \
+                            </Text>
                             <Text color="white">I've put together this quick collection of artefacts to share. Mostly random things associated with my life or something that I'm working on documenting.</Text>
                             {/* <Button mt={8} colorScheme="blue" onClick={toggleMusic}>Mute music</Button> */}
                         </Box>
