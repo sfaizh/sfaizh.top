@@ -39,8 +39,8 @@ const Blog_panel = props => {
     if (!posts) return null;
 
     return (
-        <Flex pt={5}>
-            <Box width="100%" pb={20}>
+        <Flex pt={5} alignContent={"center"} justifyContent={"center"}>
+            <Box width={{ base: "100%", md: "100%", lg: "70%" }} pb={20}>
                 {
                     posts.data.results.map(function (data, i) {
                         // Quick private function here - change when possible in backend
@@ -49,11 +49,6 @@ const Blog_panel = props => {
                     })
                 }
             </Box>
-            <Show breakpoint="(min-width: 750px)">
-                <Box>
-                    <Blog_sidebar />
-                </Box>
-            </Show>
         </Flex>
     );
 }

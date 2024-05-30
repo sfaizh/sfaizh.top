@@ -59,16 +59,13 @@ function App() {
               <Route path="/login" element={<Login />} />
               {/* protected routes */}
               <Route element={<PersistLogin />}>
-
-                {/* <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}> */}
-                  {/* <Route element={<Prefetch />}> */}
-                    <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}>
-                      <Route path="/_cpanel" element={<Admin />} />
-                      <Route path="/edit/:id" element={<EditBlog />} />
-                    </Route>
-                    <Route path="/blog" element={<Blog mode={"all"} />} />
-                    <Route index element={<Home />}/>
-                  {/* </Route> */}
+                {/* <Route element={<Prefetch />}> */}
+                  <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}>
+                    <Route path="/_cpanel" element={<Admin />} />
+                    <Route path="/edit/:id" element={<EditBlog />} />
+                  </Route>
+                  <Route path="/blog" element={<Blog mode={"all"} />} />
+                  <Route index element={<Home />}/>
                 {/* </Route> */}
               </Route>
             </Route>

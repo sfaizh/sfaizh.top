@@ -21,25 +21,15 @@ const Blog_sidebar = props => {
 
 
     return (
-        <VStack p={3}>
-            <Box>
-                <Input width="auto" placeholder='Search' />
+        <VStack alignItems='left' p={3}>
+            <Box boxSize='xxs'>
+                <Image width='200px' src="https://avatars.githubusercontent.com/u/18716739?v=4"/>
             </Box>
-            <Spacer />
-            {/* <Box>
-                <Text fontSize="sm">FOLLOW</Text>
-            </Box> */}
-            <Spacer />
-            <Box>
-                <Text fontSize="sm"><strong>LINKS</strong></Text>
+            <Box alignItems='left'>
+                <Text fontSize="md"><strong>Faizan Hussain</strong></Text>
+                <Text fontSize='sm'>About me</Text>
+                <Text fontSize="sm"><strong>Follow</strong></Text>
             </Box>
-            <Box align="center">
-                <Link href="https://www.linkedin.com/in/sfaizanh/" isExternal><Text>LinkedIn</Text></Link>
-                <Link href="https://www.instagram.com/sfaizh__/" isExternal><Text>Instagram</Text></Link>
-                <Link href="https://github.com/FaizanH" isExternal><Text>Github</Text></Link>
-            </Box>
-                {/* Links */}
-                {/* Email */}
         </VStack>
     );
 }

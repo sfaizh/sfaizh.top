@@ -16,11 +16,11 @@ const Footer = () => {
                     <Link target="_blank" href="https://www.instagram.com/sfaizh__/">
                         <IconButton ml={5} icon={<FaInstagram/>} isRound="true"></IconButton>
                     </Link>
-                    <Link target="_blank" href="https://github.com/FaizanH">
+                    <Link target="_blank" href="https://github.com/sfaizh">
                         <IconButton ml={5} icon={<FaGithub/>} isRound="true"></IconButton>
                     </Link>
                 </Box>
-                <Box className="footer-wrapper">Copyright © 2022 <a style={{'all': 'unset'}} href='mailto:faizanh53@gmail.com'>Faizan H.</a></Box>
+                <Box pb={10} className="footer-wrapper">© 2024 <a style={{'all': 'unset'}} href='mailto:faizanh53@gmail.com'>Faizan H.</a></Box>
             </VStack>
         </Flex>
     );

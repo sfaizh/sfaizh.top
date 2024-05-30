@@ -5,6 +5,8 @@ import { capsFirst } from "../../utils";
 import "../home/home.css";
 import Markdown from "react-remarkable";
 import { Link } from 'react-router-dom';
+import Metadata from "../../utils/metadata";
+import readingTime from "reading-time";
 
 import {
     Container,
@@ -20,20 +22,39 @@ const Blog_card = props => {
 
     const [data, setData] = useState([]);
     const [isScreenLarge] = useMediaQuery("(min-width: 750px");
+    const [tags, setTags] = useState([]);
+    const [date, setDate] = useState('');
+    const [content, setContent] = useState('');
 
     useEffect(() => {
-
+        if (props.card) {
+            setTags(props.card.tags.split(' '))
+            setDate(props.card.date.split('T')[0])
+            setContent(props.card.description);
+            document.title = props.card.title;
+        }
     }, []);
 
     return (
-        <VStack p={3}>
-            <Box align="center" w="100%">
-                <Text fontSize="4xl">{props.card.title}</Text>
+        <VStack>
+            <Box align="left" w="100%">
+                <Heading fontWeight='700' as='h1' mb={0}>{props.card.title}</Heading>
             </Box>
-            <Box align="center" w="100%">
+            {/* <Box align="center" w="100%">
                 <Text fontSize="sm">{props.card.subtitle}</Text>
-            </Box>
-            <Box align="center" w="100%">
+            </Box> */}
+            <HStack width="100%">
+                <Box align="left" w="100%">
+                    <Text fontSize="md">{date}</Text>
+                </Box>
+                <Box align="right" w="100%">
+                    <Text fontSize="md">{readingTime(content).text}</Text>
+                </Box>
+            </HStack>
+            {/* <Box align="left" w="100%">
+                <Text fontSize="sm">{Metadata(props.card.description)}</Text>
+            </Box> */}
+            <Box align="center" w="100%" pb={6}>
                 <Link to={"/view/" + props.card._id}>
                     <Image src={props.card.images.main} />
                 </Link>
@@ -43,7 +64,7 @@ const Blog_card = props => {
                 {/* Check mode */}
                 {
                     (props.mode != "all") ?
-                        <Box>
+                        <Box fontSize='lg'>
                             <Markdown source={props.card.description} />
                         </Box>
                         :
@@ -60,26 +81,35 @@ const Blog_card = props => {
                         </Box>
                 }
             </Box>
-
-            {
-                (props.mode != "all") ? (
-                    <VStack>
-                        <Box align="center" w="100%">
-                            Tags: {props.card.tags}
-                        </Box>
-                        <Spacer />
-                        <VStack w="100%" align="left" spacing="0px" pb={10}>
-                            <Box w="100%">
-                                <Text fontSize="sm">{props.card.author}</Text>
+            <Spacer pt={20}/>
+            <Box w="100%">
+                {
+                    (props.mode != "all") ? (
+                        <VStack>
+                            <Box align="left" w="100%">
+                                <Text color='#cacbce'>
+                                    {
+                                        tags.map(function (data, i) {
+                                            // Quick private function here - change when possible in backend
+                                            return `#${data} `
+                                        })
+                                    }
+                                </Text>
                             </Box>
-                            <Box w="100%">
-                                <Text fontSize="sm">{props.card.date}</Text>
-                            </Box>
+                            <Spacer />
+                            <VStack w="100%" align="left" spacing="0px" pb={10}>
+                                <Box w="100%">
+                                    <Text fontSize="sm">{props.card.author}</Text>
+                                </Box>
+                                <Box w="100%">
+                                    <Text fontSize="sm">{date}</Text>
+                                </Box>
+                            </VStack>
                         </VStack>
-                    </VStack>
 
-                ) : null
-            }
+                    ) : null
+                }
+            </Box>
 
             <Divider />
         </VStack>

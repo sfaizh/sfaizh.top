@@ -27,7 +27,7 @@ import axios from "axios";
 import deployment from "../../deployment.json";
 
 import { useDispatch } from 'react-redux'
-import { logOut } from '../../features/auth/authSlice.js'
+// import { logOut } from '../../features/auth/authSlice.js'
 import { useSendLogoutMutation } from '../../features/auth/authApiSlice'
 
 const Admin = props => {
@@ -63,7 +63,7 @@ const Admin = props => {
         try {
             // use reducer
             await logout().then(
-                dispatch(logOut())
+                localStorage.setItem("persist", false)
             )
             // await axios.post(deployment.production + "/logout").then(
             //     nav("/")
