@@ -27,25 +27,21 @@ const PersistLogin = () => {
     useEffect(() => {
 
         if (effectRan.current === true || process.env.NODE_ENV !== 'development') { // React 18 Strict Mode
-
-            const verifyRefreshToken = async () => {
-                console.log('verifying refresh token')
-                try {
-                    //const response = 
-                    await refresh()
-                    //const { accessToken } = response.data
-                    setTrueSuccess(true)
-                }
-                catch (err) {
-                    console.error(err)
-                }
+            return;
+        }
+        effectRan.current = true
+        const verifyRefreshToken = async () => {
+            console.log('verifying refresh token')
+            try {
+                await refresh()
+                setTrueSuccess(true)
             }
-
-            if (!token && persist) verifyRefreshToken()
+            catch (err) {
+                console.error(err)
+            }
         }
 
-        return () => effectRan.current = true
-
+        if (!token && persist) verifyRefreshToken()
         // eslint-disable-next-line
     }, [])
 
@@ -54,9 +50,9 @@ const PersistLogin = () => {
     if (!persist) { // persist: no
         console.log('no persist')
         content = <Outlet />
-    }
-    else if (persist && token) {
-        content = <Outlet />
+    // }
+    // else if (persist && token) {
+    //     content = <Outlet />
     } else if (isLoading) { //persist: yes, token: no
         console.log('loading')
         content = <PulseLoader color={"#FFF"} />
