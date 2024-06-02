@@ -1,4 +1,4 @@
 {
-    "localhost": "https://portfolio-backend-pw8x.onrender.com",
-    "production": "http://localhost:8126"
+    "localhost": "http://localhost:8126",
+    "production": "https://portfolio-backend-pw8x.onrender.com"
 }
