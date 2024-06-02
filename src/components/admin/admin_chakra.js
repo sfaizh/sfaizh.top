@@ -25,6 +25,7 @@ import useAuth from '../../utils/hooks/useAuth'
 import { useNavigate, Link } from 'react-router-dom';
 import axios from "axios";
 import deployment from "../../deployment.json";
+import usePersist from '../../utils/hooks/usePersist'
 
 import { useDispatch } from 'react-redux'
 // import { logOut } from '../../features/auth/authSlice.js'
