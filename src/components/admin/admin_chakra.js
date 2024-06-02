@@ -63,7 +63,8 @@ const Admin = props => {
         try {
             // use reducer
             await logout().then(
-                localStorage.setItem("persist", false)
+                localStorage.setItem("persist", false),
+                nav('/')
             )
             // await axios.post(deployment.production + "/logout").then(
             //     nav("/")
