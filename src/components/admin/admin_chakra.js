@@ -37,6 +37,7 @@ const Admin = props => {
 
     const dispatch = useDispatch()
     const [logout, { isLoading }] = useSendLogoutMutation()
+    const [persist, setPersist] = usePersist()
 
     const getPosts = () => {
         // Set loading modifiers
@@ -63,8 +64,8 @@ const Admin = props => {
         try {
             // use reducer
             await logout()
-                .then(localStorage.setItem("persist", false))
-                .then(nav('/'))
+            setPersist(prev => !prev)
+            nav('/')
             // await axios.post(deployment.production + "/logout").then(
             // )
         } catch (e) {

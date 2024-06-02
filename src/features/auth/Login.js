@@ -51,7 +51,8 @@ const Login = () => {
         try {
             const { accessToken } = await login({ username, password }).unwrap()
             dispatch(setCredentials({ accessToken }))
-            localStorage.setItem("persist", true)
+            // localStorage.setItem("persist", true)
+            setPersist(prev => !prev)
             setUsername('')
             setPassword('')
             navigate('/_cpanel')
