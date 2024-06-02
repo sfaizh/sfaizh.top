@@ -49,10 +49,10 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
+            setPersist(prev => !prev)
             const { accessToken } = await login({ username, password }).unwrap()
             dispatch(setCredentials({ accessToken }))
             // localStorage.setItem("persist", true)
-            setPersist(prev => !prev)
             setUsername('')
             setPassword('')
             navigate('/_cpanel')
@@ -110,9 +110,9 @@ const Login = () => {
                                 </Button>
                             </InputRightElement>
                         </InputGroup>
-                        <label htmlFor="persist" className="form__persist">
+                        {/* <label htmlFor="persist" className="form__persist">
                             <Checkbox className="form__checkbox" id="persist" onChange={handleToggle} checked={persist}>Trust This Device</Checkbox>
-                        </label>
+                        </label> */}
                         {/* <Form.Group>
                         <Form.Control type="username" required value={username} onChange={e => setusername(e.target.value)} placeholder="Enter Username"/>
                         <Form.Control type="password" required value={password} onChange={e => setpassword(e.target.value)} placeholder="Enter Current Password"/>

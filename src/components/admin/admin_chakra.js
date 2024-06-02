@@ -34,7 +34,7 @@ import { useSendLogoutMutation } from '../../features/auth/authApiSlice'
 const Admin = props => {
     const { username, isAdmin } = useAuth();
     const [posts, setPosts] = useState(null);
-    const nav = useNavigate();
+    const navigate = useNavigate();
 
     const dispatch = useDispatch()
     const [logout, { isLoading }] = useSendLogoutMutation()
@@ -60,15 +60,12 @@ const Admin = props => {
     if (!posts) return null;
 
     const handleLogout = async e => {
-        e.preventDefault();
-
+        e.preventDefault()
         try {
+            setPersist(prev => !prev)
             // use reducer
             await logout()
-            setPersist(prev => !prev)
-            nav('/')
-            // await axios.post(deployment.production + "/logout").then(
-            // )
+            navigate('/login')
         } catch (e) {
             console.log(e.message);
         }
@@ -123,8 +120,8 @@ const Admin = props => {
                 </TableContainer>
                 <Box align="center" pt={20} pb={10}>
                     <HStack>
-                        <Button onClick={e => { e.preventDefault(); nav("/blog") }}>View Blogs</Button>
-                        <Button onClick={e => { e.preventDefault(); nav("/new") }}>Create New Blog</Button>
+                        <Button onClick={e => { e.preventDefault(); navigate("/blog") }}>View Blogs</Button>
+                        <Button onClick={e => { e.preventDefault(); navigate("/new") }}>Create New Blog</Button>
                     </HStack>
                 </Box>
             </Box>
