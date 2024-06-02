@@ -26,10 +26,12 @@ const PersistLogin = () => {
 
     useEffect(() => {
 
-        if (effectRan.current === true || process.env.NODE_ENV !== 'development') { // React 18 Strict Mode
+        if (effectRan.current === true) { // React 18 Strict Mode
             return;
         }
+
         effectRan.current = true
+
         const verifyRefreshToken = async () => {
             console.log('verifying refresh token')
             try {
@@ -42,6 +44,7 @@ const PersistLogin = () => {
         }
 
         if (!token && persist) verifyRefreshToken()
+
         // eslint-disable-next-line
     }, [])
 
