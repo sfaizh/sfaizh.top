@@ -54,6 +54,9 @@ const PersistLogin = () => {
     if (!persist) { // persist: no
         console.log('no persist')
         content = <Outlet />
+    }
+    else if (persist && token) {
+        content = <Outlet />
     } else if (isLoading) { //persist: yes, token: no
         console.log('loading')
         content = <PulseLoader color={"#FFF"} />
