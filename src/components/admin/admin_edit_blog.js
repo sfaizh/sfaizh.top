@@ -139,7 +139,7 @@ const EditBlog = props => {
                                 <Text fontSize='2xl'>Markdown</Text>
                                 <Textarea style={{'min-height':'600px'}} placeholder="Description" value={description} onChange={e => setDesc(e.target.value)} />
                             </Box>
-                            <Box width="50%">
+                            <Box width="50%" mt={0}>
                                 <Text fontSize='2xl'>Preview</Text>
                                 <Box style={{'max-height':'600px', 'overflow-y':'auto'}}>
                                     <Markdown>{description}</Markdown>
