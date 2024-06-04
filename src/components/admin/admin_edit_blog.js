@@ -5,6 +5,8 @@ import Footer from "../common/footer.js";
 
 import { VStack, HStack, Flex, Box, Heading, Spacer, Text } from "@chakra-ui/layout";
 import Markdown from 'react-markdown'
+// import markdownit from 'markdown-it';
+// import lazy_loading from 'markdown-it-image-lazy-loading';
 import {
     Image,
     Button,
@@ -33,6 +35,8 @@ const EditBlog = props => {
     const [footer, setFooter] = useState("");
     const [banner, setBanner] = useState("");
     const [isPrivate, setIsPrivate] = useState(false);
+    const md = markdownit();
+    md.use(lazy_loading);
 
     const nav = useNavigate();
 
@@ -66,6 +70,10 @@ const EditBlog = props => {
     }, []);
 
     // if (!post) return null;
+    // const lazyLoadModule = async e => {
+    //     e.preventDefault();
+    //     md.render(description);
+    // }
 
     const removePost = async e => {
         e.preventDefault();

@@ -4,6 +4,7 @@ import Header from "../common/chakra_header.js";
 import Footer from "../common/footer.js";
 
 import { VStack, HStack, Flex, Box, Heading, Spacer, Text } from "@chakra-ui/layout";
+import Markdown from 'react-markdown';
 import {
     Image,
     Button,
@@ -89,7 +90,20 @@ const CreateBlog = props => {
                         </Box>
                         <Input variant="flushed" placeholder="Banner url" value={banner} onChange={e => setBanner(e.target.value)} />
 
-                        <Textarea placeholder="Description" value={description} onChange={e => setDesc(e.target.value)} />
+                        {/* <Textarea placeholder="Description" value={description} onChange={e => setDesc(e.target.value)} /> */}
+                        <HStack pb={8} pt={8}>
+                            <Box width='50%' p='5'>
+                                <Text fontSize='2xl'>Markdown</Text>
+                                <Textarea style={{'min-height':'600px'}} placeholder="Description" value={description} onChange={e => setDesc(e.target.value)} />
+                            </Box>
+                            <Box width="50%">
+                                <Text fontSize='2xl'>Preview</Text>
+                                <Box style={{'max-height':'600px', 'overflow-y':'auto'}}>
+                                    <Markdown>{description}</Markdown>
+                                </Box>
+                                
+                            </Box>
+                        </HStack>
                         <HStack width="100%">
                             <Input required variant="flushed" placeholder="Author" value={author} onChange={e => setAuthor(e.target.value)} />
                             <Input required size="md" type="datetime-local" placeholder="Date & Time" value={date} onChange={e => setDate(e.target.value)} />
