@@ -134,7 +134,7 @@ const EditBlog = props => {
                         <Box align="center">
                             <Image width="60%" src={banner} />
                         </Box>
-                        <HStack pb={8} pt={8}>
+                        <HStack minWidth='100%' pb={8} pt={8}>
                             <Box width='50%' p='5'>
                                 <Text fontSize='2xl'>Markdown</Text>
                                 <Textarea style={{'min-height':'600px'}} placeholder="Description" value={description} onChange={e => setDesc(e.target.value)} />

@@ -91,7 +91,7 @@ const CreateBlog = props => {
                         <Input variant="flushed" placeholder="Banner url" value={banner} onChange={e => setBanner(e.target.value)} />
 
                         {/* <Textarea placeholder="Description" value={description} onChange={e => setDesc(e.target.value)} /> */}
-                        <HStack pb={8} pt={8}>
+                        <HStack minWidth='100%' pb={8} pt={8}>
                             <Box width='50%' p='5'>
                                 <Text fontSize='2xl'>Markdown</Text>
                                 <Textarea style={{'min-height':'600px'}} placeholder="Description" value={description} onChange={e => setDesc(e.target.value)} />
