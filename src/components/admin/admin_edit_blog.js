@@ -35,8 +35,6 @@ const EditBlog = props => {
     const [footer, setFooter] = useState("");
     const [banner, setBanner] = useState("");
     const [isPrivate, setIsPrivate] = useState(false);
-    const md = markdownit();
-    md.use(lazy_loading);
 
     const nav = useNavigate();
 
