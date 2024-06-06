@@ -36,6 +36,7 @@ const EditBlog = props => {
     const [tags, setTags] = useState("");
     const [footer, setFooter] = useState("");
     const [banner, setBanner] = useState("");
+    const [iframe, setIframe] = useState("");
     const [isPrivate, setIsPrivate] = useState(false);
 
     const nav = useNavigate();
@@ -133,6 +134,7 @@ const EditBlog = props => {
                         <br />
                         <Text>Banner Url</Text>
                         <Input variant="flushed" placeholder="Banner url" value={banner} onChange={e => setBanner(e.target.value)} />
+                        <Input variant="flushed" placeholder="image gallery iframe" value={iframe} onChange={e => setIframe(e.target.value)} />
                         <Box align="center">
                             <Image width="60%" src={banner} />
                         </Box>

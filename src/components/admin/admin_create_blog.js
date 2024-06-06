@@ -92,7 +92,7 @@ const CreateBlog = props => {
                             <Image src={banner} />
                         </Box>
                         <Input variant="flushed" placeholder="Banner url" value={banner} onChange={e => setBanner(e.target.value)} />
-                        <Input variant="flushed" placeholder="image gallery iframe" value={iframeURL} onChange={e => setIframe(e.target.value)} />
+                        <Input variant="flushed" placeholder="image gallery iframe" value={iframe} onChange={e => setIframe(e.target.value)} />
                         {/* <Textarea placeholder="Description" value={description} onChange={e => setDesc(e.target.value)} /> */}
                         <HStack minWidth='100%' pb={8} pt={8}>
                             <Box width='50%' p='5'>
