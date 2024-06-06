@@ -5,6 +5,7 @@ import Footer from "../common/footer.js";
 
 import { VStack, HStack, Flex, Box, Heading, Spacer, Text } from "@chakra-ui/layout";
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm'
 import {
     Image,
     Button,
@@ -99,7 +100,7 @@ const CreateBlog = props => {
                             <Box width="50%">
                                 <Text fontSize='2xl'>Preview</Text>
                                 <Box style={{'max-height':'600px', 'overflow-y':'auto'}}>
-                                    <Markdown>{description}</Markdown>
+                                    <Markdown remarkPlugins={[remarkGfm]}>{description}</Markdown>
                                 </Box>
                                 
                             </Box>

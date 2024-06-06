@@ -2,6 +2,7 @@ import React, { useEffect, useState, Component } from 'react';
 import "../admin/admin.css";
 import Header from "../common/chakra_header.js";
 import Footer from "../common/footer.js";
+import remarkGfm from 'remark-gfm'
 
 import { VStack, HStack, Flex, Box, Heading, Spacer, Text } from "@chakra-ui/layout";
 import Markdown from 'react-markdown'
@@ -141,10 +142,9 @@ const EditBlog = props => {
                             </Box>
                             <Box width="50%" mt={0}>
                                 <Text fontSize='2xl'>Preview</Text>
-                                <Box style={{'max-height':'600px', 'overflow-y':'auto'}}>
-                                    <Markdown>{description}</Markdown>
+                                <Box style={{'mix-height':'600px', 'overflow-y':'auto'}}>
+                                    <Markdown remarkPlugins={[remarkGfm]}>{description}</Markdown>
                                 </Box>
-                                
                             </Box>
                         </HStack>
                         <HStack width="100%">
