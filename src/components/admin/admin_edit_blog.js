@@ -7,6 +7,7 @@ import { VStack, HStack, Flex, Box, Heading, Spacer, Text } from "@chakra-ui/lay
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkIframe from 'remark-iframes'
+import rehypeRaw from 'rehype-raw'
 // import markdownit from 'markdown-it';
 // import lazy_loading from 'markdown-it-image-lazy-loading';
 import {
@@ -144,7 +145,7 @@ const EditBlog = props => {
                             <Box width="50%" mt={0}>
                                 <Text fontSize='2xl'>Preview</Text>
                                 <Box style={{'min-height':'600px', 'max-height':'600px', 'overflow-y':'auto'}}>
-                                    <Markdown remarkPlugins={[remarkGfm,remarkIframe]}>{description}</Markdown>
+                                    <Markdown remarkPlugins={[remarkGfm,remarkIframe,rehypeRaw]}>{description}</Markdown>
                                 </Box>
                             </Box>
                         </HStack>
