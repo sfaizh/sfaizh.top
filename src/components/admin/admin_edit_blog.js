@@ -144,7 +144,7 @@ const EditBlog = props => {
                             <Box width="50%" mt={0}>
                                 <Text fontSize='2xl'>Preview</Text>
                                 <Box style={{'min-height':'600px', 'max-height':'600px', 'overflow-y':'auto'}}>
-                                    <Markdown remarkPlugins={[remarkGfm,rehypeRaw]}>{description}</Markdown>
+                                    <Markdown remarkPlugins={[remarkGfm]}>{description}</Markdown>
                                 </Box>
                             </Box>
                         </HStack>

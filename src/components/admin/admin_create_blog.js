@@ -42,6 +42,7 @@ const CreateBlog = props => {
     const [tags, setTags] = useState("");
     const [footer, setFooter] = useState("");
     const [banner, setBanner] = useState("");
+    const [iframe, setIframe] = useState("");
     const [isPrivate, setIsPrivate] = useState(false);
 
     const nav = useNavigate();
@@ -91,7 +92,7 @@ const CreateBlog = props => {
                             <Image src={banner} />
                         </Box>
                         <Input variant="flushed" placeholder="Banner url" value={banner} onChange={e => setBanner(e.target.value)} />
-
+                        <Input variant="flushed" placeholder="image gallery iframe" value={iframeURL} onChange={e => setIframe(e.target.value)} />
                         {/* <Textarea placeholder="Description" value={description} onChange={e => setDesc(e.target.value)} /> */}
                         <HStack minWidth='100%' pb={8} pt={8}>
                             <Box width='50%' p='5'>
@@ -101,9 +102,8 @@ const CreateBlog = props => {
                             <Box width="50%">
                                 <Text fontSize='2xl'>Preview</Text>
                                 <Box style={{'min-height':'600px', 'max-height':'600px', 'overflow-y':'auto'}}>
-                                    <Markdown remarkPlugins={[remarkGfm,rehypeRaw]}>{description}</Markdown>
+                                    <Markdown remarkPlugins={[remarkGfm]}>{description}</Markdown>
                                 </Box>
-                                
                             </Box>
                         </HStack>
                         <HStack width="100%">
