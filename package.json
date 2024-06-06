@@ -37,6 +37,7 @@
     "react-spinners": "^0.13.8",
     "reading-time": "^1.5.0",
     "remark-gfm": "^4.0.0",
+    "remark-iframes": "^4.1.1",
     "remarkable": "^2.0.1",
     "stream": "^0.0.2",
     "ts-loader": "^9.5.0",
