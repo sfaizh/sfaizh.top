@@ -31,7 +31,6 @@ const Blog_card = props => {
             setTags(props.card.tags.split(' '))
             setDate(props.card.date.split('T')[0])
             setContent(props.card.description);
-            document.title = props.card.title;
         }
     }, []);
 

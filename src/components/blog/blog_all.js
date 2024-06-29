@@ -1,5 +1,5 @@
 import { VStack, HStack, Stack, Flex, Heading, Spacer, Box, Text, Divider } from "@chakra-ui/layout";
-import { useMediaQuery, Button, Image, Show } from "@chakra-ui/react";
+import { useMediaQuery, Button, Image, Show, VisuallyHidden } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
 import { capsFirst } from "../../utils";
 import posts from "../../assets/data/blogs.json";
@@ -23,7 +23,6 @@ const Blog_panel = props => {
     const getPosts = () => {
         // Set loading modifiers
         // props.setLoadingState(true);
-        // props.setLoadingState(false);
         axios.get(deployment.production + "/blogposts")
             .then(r => {
                 setPosts(r);
@@ -40,6 +39,9 @@ const Blog_panel = props => {
 
     return (
         <Flex pt={5} alignContent={"center"} justifyContent={"center"}>
+            <VisuallyHidden>
+                <Heading fontWeight='700' as='h1' mb={0}>Posts</Heading>
+            </VisuallyHidden>
             <Box width={{ base: "100%", md: "100%", lg: "70%" }} pb={20}>
                 {
                     posts.data.results.map(function (data, i) {

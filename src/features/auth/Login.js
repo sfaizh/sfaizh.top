@@ -9,8 +9,8 @@ import PulseLoader from 'react-spinners/PulseLoader'
 import "../../components/admin/admin.css";
 import Header from "../../components/common/chakra_header.js";
 import Footer from "../../components/common/footer.js";
-import { VStack, HStack, Flex, Box, Heading, Spacer, Text } from "@chakra-ui/layout";
-import { Checkbox, CheckboxGroup } from '@chakra-ui/react'
+import { VStack, HStack, Flex, Box, Heading, Spacer, Text, Center } from "@chakra-ui/layout";
+import { Checkbox, CheckboxGroup, calc } from '@chakra-ui/react'
 import {
     Image,
     Button,
@@ -21,6 +21,11 @@ import {
 } from '@chakra-ui/react'
 import { useForm } from "react-hook-form";
 import { UserAuth } from '../../context/AuthContext.js';
+
+import {
+    Container,
+    Tag
+} from "@chakra-ui/react";
 
 const Login = () => {
     useTitle('Employee Login')
@@ -76,6 +81,9 @@ const Login = () => {
 
     const [show, setShow] = React.useState(false)
     const handleClick = () => setShow(!show)
+    // const useStyles = makeStyles({
+    //     width: 'calc(100vh - 200px)'
+    // });
 
     const errClass = errMsg ? "errmsg" : "offscreen"
 
@@ -84,50 +92,49 @@ const Login = () => {
     const content = (
         <VStack p={5}>
             <Header />
-            <Box>
-                {/* <p ref={errRef} className={errClass} aria-live="assertive">{errMsg}</p> */}
-                <form className="form" onSubmit={handleSubmit}>
-                    <VStack>
-                        <Input
-                            className="form__input"
-                            required placeholder="Username" value={username} onChange={e => setUsername(e.target.value)}
-                            autoComplete="off"
-                            ref={userRef}
-                        />
-                        <InputGroup size='md'>
+                <Center h={"calc(100vh - 14rem)"}>
+                    {/* <p ref={errRef} className={errClass} aria-live="assertive">{errMsg}</p> */}
+                    <form className="form" onSubmit={handleSubmit}>
+                        <VStack>
                             <Input
                                 className="form__input"
-                                pr='4.5rem'
-                                type={show ? 'text' : 'password'}
-                                placeholder='Password'
-                                required
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
+                                required placeholder="Username" value={username} onChange={e => setUsername(e.target.value)}
+                                autoComplete="off"
+                                ref={userRef}
                             />
-                            <InputRightElement width='4.5rem'>
-                                <Button h='1.75rem' size='sm' onClick={handleClick}>
-                                    {show ? 'Hide' : 'Show'}
-                                </Button>
-                            </InputRightElement>
-                        </InputGroup>
-                        {/* <label htmlFor="persist" className="form__persist">
-                            <Checkbox className="form__checkbox" id="persist" onChange={handleToggle} checked={persist}>Trust This Device</Checkbox>
-                        </label> */}
-                        {/* <Form.Group>
-                        <Form.Control type="username" required value={username} onChange={e => setusername(e.target.value)} placeholder="Enter Username"/>
-                        <Form.Control type="password" required value={password} onChange={e => setpassword(e.target.value)} placeholder="Enter Current Password"/>
-                    </Form.Group> */}
-                        <br />
-                        {/* <Button as={Link} to="/" variant="primary">Back</Button> */}
-                        <Button
-                            type="submit"
-                            className="form__input-button"
-                        >Login
-                        </Button>
-                    </VStack>
-                </form>
-
-            </Box>
+                            <InputGroup size='md'>
+                                <Input
+                                    className="form__input"
+                                    pr='4.5rem'
+                                    type={show ? 'text' : 'password'}
+                                    placeholder='Password'
+                                    required
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                />
+                                <InputRightElement width='4.5rem'>
+                                    <Button h='1.75rem' size='sm' onClick={handleClick}>
+                                        {show ? 'Hide' : 'Show'}
+                                    </Button>
+                                </InputRightElement>
+                            </InputGroup>
+                            {/* <label htmlFor="persist" className="form__persist">
+                                <Checkbox className="form__checkbox" id="persist" onChange={handleToggle} checked={persist}>Trust This Device</Checkbox>
+                            </label> */}
+                            {/* <Form.Group>
+                            <Form.Control type="username" required value={username} onChange={e => setusername(e.target.value)} placeholder="Enter Username"/>
+                            <Form.Control type="password" required value={password} onChange={e => setpassword(e.target.value)} placeholder="Enter Current Password"/>
+                        </Form.Group> */}
+                            <br />
+                            {/* <Button as={Link} to="/" variant="primary">Back</Button> */}
+                            <Button
+                                type="submit"
+                                className="form__input-button"
+                            >Login
+                            </Button>
+                        </VStack>
+                    </form>
+                </Center>
             <Footer />
         </VStack>
     )

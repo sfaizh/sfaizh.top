@@ -6,7 +6,7 @@ import Header from "../common/chakra_header.js";
 
 import { useMediaQuery, Button, Image } from "@chakra-ui/react";
 
-import { VStack, HStack, Stack, Flex, Heading, Spacer, Box, Text } from "@chakra-ui/layout";
+import { VStack, HStack, Stack, Flex, Heading, Spacer, Box, Text, Center } from "@chakra-ui/layout";
 import ChakraCarousel from "./carousel.js"
 import React, { useState, useEffect } from "react";
 import { capsFirst } from "../../utils";
@@ -27,7 +27,6 @@ const Home = () => {
     const getPosts = () => {
         // Set loading modifiers
         // props.setLoadingState(true);
-        // props.setLoadingState(false);
         axios.get(deployment.production + "/blogposts?private=false")
             .then(r => {
                 setPosts(r.data.results);
@@ -45,8 +44,6 @@ const Home = () => {
     return (
         <VStack p={5}>
             <Header/>
-            <Banner/>
-            <Categories/>
             <Container
                 py={8}
                 px={0}
@@ -57,7 +54,11 @@ const Home = () => {
                 lg: "57.5rem",
                 xl: "75rem",
                 xxl: "87.5rem"
-                }}>
+                }}
+                >
+            <Box align="center">
+                <Text fontSize="4xl" fontWeight="semibold">Recent Posts</Text>
+            </Box>
             <ChakraCarousel gap={32}>
                     {posts.slice(0, 8).map((post, index) => (
                         <Flex
@@ -74,12 +75,12 @@ const Home = () => {
                             >
                             <VStack mb={6}>
                                 <Heading
-                                fontSize={{ base: "xl", md: "2xl" }}
-                                textAlign="left"
-                                w="full"
-                                mb={2}
-                                >
-                                {post.title}
+                                    fontSize={{ base: "xl", md: "2xl" }}
+                                    textAlign="left"
+                                    w="full"
+                                    mb={2}
+                                    >
+                                    {post.title}
                                 </Heading>
                                 <Text w="full">{post.body}</Text>
                             </VStack>
@@ -92,16 +93,16 @@ const Home = () => {
                                 </HStack>
                                 <Link to={"/view/" + post._id}>
                                     <Button
-                                    colorScheme="white"
-                                    size="sm">View
+                                        colorScheme="white"
+                                        size="sm">View
                                     </Button>
                                 </Link>
                             </Flex>
                         </Flex>
                     ))}
                 </ChakraCarousel>
+                <Banner/>
             </Container>
-
             <Footer/>
         </VStack>
     )

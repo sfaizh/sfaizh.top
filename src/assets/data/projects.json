@@ -1,0 +1,44 @@
+{
+    "posts": [
+        {
+            "id": 1,
+            "title": "MERN Stack Firebase Starter Kit",
+            "subtitle": "A template I've put together to help get up and running with MERN stack on Google Firebase",
+            "logo": "",
+            "logo_size": "100px",
+            "git_uri": "https://github.com/sfaizh/mern-firebase-starter"
+        },
+        {
+            "id": 2,
+            "title": "My Public Site",
+            "subtitle": "This website, built using React, Redux, MongoDB, and Chakra UI",
+            "logo": "",
+            "logo_size": "100px",
+            "git_uri": "https://github.com/sfaizh/public-profile-frontend"
+        },
+        {
+            "id": 3,
+            "title": "Trading Bot",
+            "subtitle": "Python bot that can be configured to automate trading by analysing intervals and setting a stoploss. Consumes Coinspot's API",
+            "logo": "",
+            "logo_size": "100px",
+            "git_uri": "https://github.com/sfaizh/trade-bot"
+        },
+        {
+            "id": 4,
+            "title": "E-commerce Cart Demo",
+            "subtitle": "A very basic cart demo",
+            "logo": "",
+            "logo_size": "100px",
+            "git_uri": ""
+        },
+        {
+            "id": 4,
+            "title": "Chat App",
+            "subtitle": "Simple multi-user chat app",
+            "logo": "",
+            "logo_size": "100px",
+            "git_uri": ""
+        }
+    ]
+}

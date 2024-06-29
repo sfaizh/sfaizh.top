@@ -17,20 +17,7 @@ function muteMusic() {
 
 const Banner = props => {
     const { toggleMusic } = muteMusic();
-
     const [isLargerScreen] = useMediaQuery("(min-width: 600px");
-
-    const [data, setData] = useState([]);
-
-    // useEffect(() => {
-    //   fetch("https://jsonplaceholder.typicode.com/posts/")
-    //     .then((res) => res.json())
-    //     .then((res) => setData(res));
-    // }, []);
-    useEffect(() => {
-        setData(posts.posts);
-    }, []);
-
 
     return (
             <Container
@@ -61,7 +48,6 @@ const Banner = props => {
                                 \
                             </Text>
                             <Text color="white">I've put together this quick collection of artefacts to share. Mostly random things associated with my life or something that I'm working on documenting.</Text>
-                            {/* <Button mt={8} colorScheme="blue" onClick={toggleMusic}>Mute music</Button> */}
                         </Box>
                     </Flex>
                 </Stack>

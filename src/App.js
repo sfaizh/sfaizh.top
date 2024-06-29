@@ -11,12 +11,13 @@ import deployment from "./deployment";
 // Public
 import Layout from './components/Layout'
 import Login from "./features/auth/Login";
-// TODO import new login
+import About from './components/about.js';
 import Home from "./components/home/home_chakra.js";
 
 import Cars from "./components/cars/cars.js";
 import Weightlifting from "./components/weightlifting/weightlifting.js";
 import Industry from "./components/industry-experience/chakra_industry.js";
+import Projects from './components/projects/projects.js';
 
 import Blog from "./components/blog/chakra_blog.js";
 import CreateBlog from "./components/admin/admin_create_blog.js";
@@ -50,23 +51,24 @@ function App() {
           <Routes>
             <Route path="/" element={<Layout />}>
               {/* public routes */}
-              <Route path="/view/:id" element={<Blog mode={"single"} />} />
-              <Route path="/new" element={<CreateBlog />} />
-              <Route path="/motorsports" element={<Cars />} />
-              {/* <Route path="/weightlifting" element={<Weightlifting />} /> */}
-              <Route path="/industry" element={<Industry />} />
-
               <Route path="/login" element={<Login />} />
+              {/* <Route path="/motorsports" element={<Cars />} /> */}
+              {/* <Route path="/weightlifting" element={<Weightlifting />} /> */}
+              {/* <Route path="/industry" element={<Industry />} /> */}
+
               {/* protected routes */}
               <Route element={<PersistLogin />}>
                 {/* <Route element={<Prefetch />}> */}
                   <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}>
                     <Route path="/_cpanel" element={<Admin />} />
                     <Route path="/edit/:id" element={<EditBlog />} />
+                    <Route path="/new" element={<CreateBlog />} />
                   </Route>
-                  <Route path="/blog" element={<Blog mode={"all"} />} />
                   <Route index element={<Home />}/>
-                {/* </Route> */}
+                  <Route path="/view/:id" element={<Blog mode={"single"} />} />
+                  <Route path="/blog" element={<Blog mode={"all"} />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/projects" element={<Projects />} />
               </Route>
             </Route>
           </Routes>

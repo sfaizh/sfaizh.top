@@ -20,7 +20,7 @@ const Footer = () => {
                         <IconButton ml={5} icon={<FaGithub/>} isRound="true"></IconButton>
                     </Link>
                 </Box>
-                <Box pb={10} className="footer-wrapper">© 2024 <a style={{'all': 'unset'}} href='mailto:faizanh53@gmail.com'>Faizan H.</a></Box>
+                <Box pb={5} className="footer-wrapper">© 2024 <Link style={{'all': 'unset'}} href='mailto:faizanh53@gmail.com'>sfaizh</Link>.</Box>
             </VStack>
         </Flex>
     );

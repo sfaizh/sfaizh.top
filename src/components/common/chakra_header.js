@@ -2,18 +2,21 @@ import "../home/home.css";
 
 import { IconButton } from "@chakra-ui/button";
 import { useColorMode } from "@chakra-ui/color-mode";
-import { Flex, Heading, Spacer, HStack } from "@chakra-ui/layout";
+import { Flex, Heading, Spacer, HStack, } from "@chakra-ui/layout";
 import { FaSun, FaMoon, FaInstagram, FaGithub, FaLinkedin, FaHive, FaUserAstronaut, FaUser, FaArrowRight } from "react-icons/fa";
-import { Link, Box, useColorModeValue } from '@chakra-ui/react'
+import { CgLogIn } from "react-icons/cg";
+import { Link, Box, useColorModeValue, Text } from '@chakra-ui/react'
 import { Image } from '@chakra-ui/react'
 import { Avatar, AvatarBadge, AvatarGroup, Wrap, WrapItem } from '@chakra-ui/react'
 import useAuth from '../../utils/hooks/useAuth'
+import { useNavigate } from "react-router-dom";
 
 const Header = (props) => {
     const { colorMode, toggleColorMode } = useColorMode();
     const isDark = colorMode === "dark";
     const logoMode = useColorModeValue("light", "dark");
     const { username, isAdmin } = useAuth();
+    const navigate = useNavigate();
 
     return (
         <Flex w="100%">
@@ -25,13 +28,20 @@ const Header = (props) => {
             <Spacer></Spacer>
             <HStack spacing="10px">
                 <Wrap mt={4}>
-                    <WrapItem>
-                        <Link href='/_cpanel'>
-                            <Avatar style={{'color':'white'}} size='sm' bg='#b4a389' name={username} icon={<FaHive/>} />
-                        </Link>
-                    </WrapItem>
+                    <Link pr={2} href='/projects'>
+                        Projects
+                    </Link>
+                    <Link pr={2} href='/blog'>
+                        Posts
+                    </Link>
+                    <Link pr={1} href='/about'>
+                        About
+                    </Link>
                 </Wrap>
-                <IconButton ml={2} icon={isDark ? <FaSun/> : <FaMoon/>} isRound="true" onClick={toggleColorMode}></IconButton>
+                <IconButton mr={1} icon={isDark ? <FaSun/> : <FaMoon/>} isRound="true" onClick={toggleColorMode}></IconButton>
+                <Link href='/_cpanel'>
+                    <IconButton bg='#b4a389' icon={<CgLogIn/>} isRound="true"></IconButton>
+                </Link>
             </HStack>
         </Flex>
     )

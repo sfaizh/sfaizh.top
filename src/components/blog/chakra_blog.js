@@ -33,7 +33,7 @@ const Blog = props => {
                     xl: "75rem",
                     xxl: "77.5rem"
                 }}
-            >
+                >
                 {/* Check if single view or show all */}
                 {(props.mode == "all") ? <Blog_all /> : <Blog_single />}
             </Container>
