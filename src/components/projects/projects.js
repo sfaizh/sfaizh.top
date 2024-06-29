@@ -10,7 +10,6 @@ import "../home/home.css";
 import axios from "axios";
 import deployment from "../../deployment.json";
 import { useNavigate, Link, useParams } from 'react-router-dom';
-import { Octokit } from "@octokit/core";
 import Project_card from "./project_card.js";
 import projects from "../../assets/data/projects.json";
 
