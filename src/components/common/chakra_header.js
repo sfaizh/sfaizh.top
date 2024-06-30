@@ -28,7 +28,8 @@ const Header = (props) => {
         <Flex w="100%">
             <Heading ml="8" size="md" fontWeight="semibold" color="cyan.400">
                 <Link href="/">
-                    {(logoMode == "dark") ? <Box className="header-logo"></Box> : <Box className="header-logo-dark"></Box>}
+                    {/* {(logoMode == "dark") ? <Box className="header-logo"></Box> : <Box className="header-logo-dark"></Box>} */}
+                    <Box className="header-logo"></Box>
                 </Link>
             </Heading>
             <Spacer></Spacer>
