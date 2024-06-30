@@ -30,7 +30,7 @@ const Projects = () => {
 
     return (
         <VStack p={5}>
-            <Header/>
+            <Header />
             <Container
                 py={8}
                 px={0}
@@ -42,19 +42,19 @@ const Projects = () => {
                     xl: "75rem",
                     xxl: "77.5rem"
                 }}
-                >
+            >
                 <Flex pt={5} alignContent={"center"} justifyContent={"center"}>
                     <Box align="left" width={{ base: "100%", md: "100%", lg: "60%" }}>
                         <Text fontSize="4xl" fontWeight="semibold">Software Projects</Text>
                         {
                             posts.map(function (data, i) {
-                                return <Project_card key={i} card={data}/>
+                                return <Project_card key={i} card={data} />
                             })
                         }
                     </Box>
                 </Flex>
             </Container>
-            <Footer/>
+            <Footer />
         </VStack>
     )
 }

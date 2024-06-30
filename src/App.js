@@ -48,30 +48,30 @@ function App() {
     <ChakraProvider theme={extendTheme(theme)}>
       <ColorModeScript initialColorMode="light"></ColorModeScript>
       <div className="app-wrapper">
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              {/* public routes */}
-              <Route path="/login" element={<Login />} />
-              {/* <Route path="/motorsports" element={<Cars />} /> */}
-              {/* <Route path="/weightlifting" element={<Weightlifting />} /> */}
-              {/* <Route path="/industry" element={<Industry />} /> */}
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            {/* public routes */}
+            <Route path="/login" element={<Login />} />
+            {/* <Route path="/motorsports" element={<Cars />} /> */}
+            {/* <Route path="/weightlifting" element={<Weightlifting />} /> */}
+            {/* <Route path="/industry" element={<Industry />} /> */}
 
-              {/* protected routes */}
-              <Route element={<PersistLogin />}>
-                {/* <Route element={<Prefetch />}> */}
-                  <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}>
-                    <Route path="/_cpanel" element={<Admin />} />
-                    <Route path="/edit/:id" element={<EditBlog />} />
-                    <Route path="/new" element={<CreateBlog />} />
-                  </Route>
-                  <Route index element={<Home />}/>
-                  <Route path="/view/:id" element={<Blog mode={"single"} />} />
-                  <Route path="/blog" element={<Blog mode={"all"} />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/projects" element={<Projects />} />
+            {/* protected routes */}
+            <Route element={<PersistLogin />}>
+              {/* <Route element={<Prefetch />}> */}
+              <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}>
+                <Route path="/_cpanel" element={<Admin />} />
+                <Route path="/edit/:id" element={<EditBlog />} />
+                <Route path="/new" element={<CreateBlog />} />
               </Route>
+              <Route index element={<Home />} />
+              <Route path="/view/:id" element={<Blog mode={"single"} />} />
+              <Route path="/blog" element={<Blog mode={"all"} />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/projects" element={<Projects />} />
             </Route>
-          </Routes>
+          </Route>
+        </Routes>
       </div>
     </ChakraProvider>
 

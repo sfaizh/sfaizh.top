@@ -69,18 +69,18 @@ const Blog_card = props => {
                         :
                         <Box>
                             <Markdown source={trim(props.card.description, 100)} />
-                            ...
+                            <Text>...</Text>
                             <br /><br />
                             <Link to={"/view/" + props.card._id}>
                                 <Button
                                     colorScheme="gray"
-                                    size="sm">More
+                                    size="sm">Continue reading
                                 </Button>
                             </Link>
                         </Box>
                 }
             </Box>
-            <Spacer pt={20}/>
+            <Spacer pt={20} />
             <Box w="100%">
                 {
                     (props.mode != "all") ? (

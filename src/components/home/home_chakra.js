@@ -14,6 +14,7 @@ import "../home/home.css";
 import axios from "axios";
 import deployment from "../../deployment.json";
 import { useNavigate, Link, useParams } from 'react-router-dom';
+import readingTime from "reading-time";
 
 import {
     Container,
@@ -22,7 +23,7 @@ import {
 
 const Home = () => {
     const [isLargerScreen] = useMediaQuery("(min-width: 600px");
-    const [posts, setPosts] = useState( null );
+    const [posts, setPosts] = useState(null);
 
     const getPosts = () => {
         // Set loading modifiers
@@ -35,7 +36,7 @@ const Home = () => {
             .catch(err => console.log(err));
     }
 
-    useEffect(()  => {
+    useEffect(() => {
         getPosts();
     }, []);
 
@@ -43,67 +44,61 @@ const Home = () => {
 
     return (
         <VStack p={5}>
-            <Header/>
+            <Header />
             <Container
                 py={8}
                 px={0}
                 maxW={{
-                base: "100%",
-                sm: "35rem",
-                md: "43.75rem",
-                lg: "57.5rem",
-                xl: "75rem",
-                xxl: "87.5rem"
+                    base: "100%",
+                    sm: "35rem",
+                    md: "43.75rem",
+                    lg: "57.5rem",
+                    xl: "75rem",
+                    xxl: "87.5rem"
                 }}
-                >
-            <Box align="center">
-                <Text fontSize="4xl" fontWeight="semibold">Recent Posts</Text>
-            </Box>
-            <ChakraCarousel gap={32}>
+            >
+                <Box align="center">
+                    <Text fontSize="4xl" fontWeight="semibold">Recent Posts</Text>
+                </Box>
+                <ChakraCarousel gap={32}>
                     {posts.slice(0, 8).map((post, index) => (
                         <Flex
                             key={index}
                             boxShadow="rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px"
-                            justifyContent="space-between"
                             flexDirection="column"
                             overflow="hidden"
-                            bg="#b4a389"
+                            // bg="#465a63"
                             rounded={5}
                             flex={1}
-                            p={5}
+                            p={10}
                             color={'white'}
-                            >
-                            <VStack mb={6}>
+                            alignItems='end'
+                            bgImage={`linear-gradient(rgba(0, 0, 0, 0.527),rgba(0, 0, 0, 0.5)), url('${post.images.main}')`}
+                            bgSize='100%'
+                        >
+                            <VStack h='100'>
                                 <Heading
                                     fontSize={{ base: "xl", md: "2xl" }}
                                     textAlign="left"
                                     w="full"
                                     mb={2}
-                                    >
+                                >
                                     {post.title}
                                 </Heading>
-                                <Text w="full">{post.body}</Text>
-                            </VStack>
-
-                            <Flex justifyContent="space-between">
-                                <HStack spacing={2}>
-                                <Tag size="sm" variant="outline" color="#344146">
-                                    Faizan
-                                </Tag>
+                                <HStack spacing={2} w='100%' h='100' justifyContent='end' alignItems='end'>
+                                    <Tag size="md" variant="outline">
+                                        {post.author}
+                                    </Tag>
+                                    <Tag fontSize="sm">{readingTime(post.description).text}</Tag>
                                 </HStack>
-                                <Link to={"/view/" + post._id}>
-                                    <Button
-                                        colorScheme="white"
-                                        size="sm">View
-                                    </Button>
-                                </Link>
-                            </Flex>
+                            </VStack>
+                            {/* </Link> */}
                         </Flex>
                     ))}
                 </ChakraCarousel>
-                <Banner/>
+                <Banner />
             </Container>
-            <Footer/>
+            <Footer />
         </VStack>
     )
 }

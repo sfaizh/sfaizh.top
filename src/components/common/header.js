@@ -1,6 +1,8 @@
-
+import { useMediaQuery } from "@chakra-ui/react";
 
 const Header = props => {
+    const [isScreenSmallest] = useMediaQuery("(max-width: 400px");
+    const [isScreenLarge] = useMediaQuery("(min-width: 750px");
 
     return (
         <div className="blank-header">
