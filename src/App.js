@@ -81,7 +81,11 @@ function App() {
             {/* <Route path="/motorsports" element={<Cars />} /> */}
             {/* <Route path="/weightlifting" element={<Weightlifting />} /> */}
             {/* <Route path="/industry" element={<Industry />} /> */}
-
+            <Route index element={<Home />} />
+            <Route path="/view/:id" element={<Blog mode={"single"} />} />
+            <Route path="/blog" element={<Blog mode={"all"} />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/projects" element={<Projects />} />
             {/* protected routes */}
             <Route element={<PersistLogin />}>
               {/* <Route element={<Prefetch />}> */}
@@ -90,11 +94,6 @@ function App() {
                 <Route path="/edit/:id" element={<EditBlog />} />
                 <Route path="/new" element={<CreateBlog />} />
               </Route>
-              <Route index element={<Home />} />
-              <Route path="/view/:id" element={<Blog mode={"single"} />} />
-              <Route path="/blog" element={<Blog mode={"all"} />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/projects" element={<Projects />} />
             </Route>
           </Route>
         </Routes>
