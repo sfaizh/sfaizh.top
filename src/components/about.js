@@ -41,8 +41,8 @@ const About = () => {
                             Hi! 👋 I'm Faizan.
                         </Text>
                         <Text>
-                            I'm a technical support engineer specialising in software, Data Center and Cloud tools.
-                            I'm ex-Cisco, and these days I'm working at Datadog on the Technical Solutions team.
+                            I'm a technical support engineer working with solutions for observability across Data Center/cloud infrastructure, specializing in APM.
+                            I'm ex-Cisco, currently working at Datadog on the Technical Solutions team.
                         </Text>
                         <Text>
                             I run a blog, where I write about cars, motorbikes, and basically anything that rolls on wheels.
