@@ -76,23 +76,24 @@ const Home = () => {
                             bgImage={`linear-gradient(rgba(0, 0, 0, 0.527),rgba(0, 0, 0, 0.5)), url('${post.images.main}')`}
                             bgSize='100%'
                         >
-                            <VStack h='100'>
-                                <Heading
-                                    fontSize={{ base: "xl", md: "2xl" }}
-                                    textAlign="left"
-                                    w="full"
-                                    mb={2}
-                                >
-                                    {post.title}
-                                </Heading>
-                                <HStack spacing={2} w='100%' h='100' justifyContent='end' alignItems='end'>
-                                    <Tag size="md" variant="outline">
-                                        {post.author}
-                                    </Tag>
-                                    <Tag fontSize="sm">{readingTime(post.description).text}</Tag>
-                                </HStack>
-                            </VStack>
-                            {/* </Link> */}
+                            <Link to={"/view/" + post._id}>
+                                <VStack h='100'>
+                                    <Heading
+                                        fontSize={{ base: "xl", md: "2xl" }}
+                                        textAlign="left"
+                                        w="full"
+                                        mb={2}
+                                    >
+                                        {post.title}
+                                    </Heading>
+                                    <HStack spacing={2} w='100%' h='100' justifyContent='end' alignItems='end'>
+                                        <Tag size="md" variant="outline">
+                                            {post.author}
+                                        </Tag>
+                                        <Tag fontSize="sm">{readingTime(post.description).text}</Tag>
+                                    </HStack>
+                                </VStack>
+                            </Link>
                         </Flex>
                     ))}
                 </ChakraCarousel>

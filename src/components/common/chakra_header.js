@@ -19,12 +19,10 @@ const Header = (props) => {
     const logoMode = useColorModeValue("light", "dark");
     const { username, isAdmin } = useAuth();
     const navigate = useNavigate();
-    // const [isScreenSmallest] = useMediaQuery("(max-width: 400px");
     const [isScreenLarge] = useMediaQuery('(min-width: 525px)');
 
-    useEffect(() => {
-        console.log(isScreenLarge)
-    }, [isScreenLarge])
+    // useEffect(() => {
+    // }, [isScreenLarge])
 
     return (
         <Flex w="100%">

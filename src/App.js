@@ -3,7 +3,6 @@ import './App.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { Component, useEffect, useState } from "react";
 import { ChakraProvider, ColorModeScript, extendTheme } from "@chakra-ui/react";
-import theme from "./utils/theme.js";
 
 import axios from "axios";
 import deployment from "./deployment";
@@ -34,12 +33,39 @@ import { ROLES } from './utils/config/roles'
 import ProtectedRoute from "./components/admin/protected-route";
 import Unauthorised from "./components/admin/unauthorised";
 
-let config = {
-  withCredentials: true,
-  credentials: "include",
-  headers: {
-    "Accept": "*/*",
-    "Content-Type": "application/json"
+const theme = {
+  breakpoints: {
+    xs: "30em",
+    sm: "36em",
+    md: "46.25em",
+    lg: "62.5em",
+    xl: "78.125em",
+    xxl: "95em"
+  },
+  components: {
+    Heading: {
+      baseStyle: {
+        fontFamily: "inherit",
+        fontWeight: "normal",
+        color: "inherit"
+      }
+    },
+    Text: {
+      baseStyle: {
+        fontFamily: "inherit",
+        fontWeight: "normal",
+        lineHeight: "tall",
+        color: "inherit"
+      }
+    },
+    Button: {
+      baseStyle: {
+        textTransform: "uppercase",
+        letterSpacing: "wide",
+        fontWeight: "normal",
+        userSelect: "none"
+      }
+    }
   }
 };
 

@@ -29,11 +29,8 @@ const PersistLogin = () => {
         if (effectRan.current === true) {
             return;
         }
-
         effectRan.current = true
-
         const verifyRefreshToken = async () => {
-            console.log('verifying refresh token')
             try {
                 await refresh()
                 setTrueSuccess(true)
@@ -42,19 +39,14 @@ const PersistLogin = () => {
                 console.error(err)
             }
         }
-
         if (!token && persist) verifyRefreshToken()
-
-        // eslint-disable-next-line
     }, [])
 
 
     let content
     if (!persist) { // persist: no
-        console.log('no persist')
         content = <Outlet />
     } else if (persist && isLoading) { //persist: yes, token: no
-        console.log('loading')
         content = <PulseLoader color={"#FFF"} />
     } else if (persist && isError) { //persist: yes, token: no
         console.log('error')
@@ -65,9 +57,8 @@ const PersistLogin = () => {
             </p>
         )
     } else if (persist && isSuccess && trueSuccess) { //persist: yes, token: yes
-        console.log('success')
         content = <Outlet />
-    } else if ( persist && token && isUninitialized) { //persist: yes, token: yes
+    } else if (persist && token && isUninitialized) { //persist: yes, token: yes
         console.log('token and uninit')
         console.log(isUninitialized)
         content = <Outlet />
