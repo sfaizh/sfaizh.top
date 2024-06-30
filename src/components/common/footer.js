@@ -4,6 +4,7 @@ import { IconButton } from "@chakra-ui/button";
 import { Flex, StackDivider, Box, VStack, Heading, Spacer } from "@chakra-ui/layout";
 import "../home/home.css";
 import { all } from "axios";
+import CookieConsent from "react-cookie-consent";
 
 const Footer = () => {
     return (
@@ -20,6 +21,7 @@ const Footer = () => {
                         <IconButton ml={5} icon={<FaGithub/>} isRound="true"></IconButton>
                     </Link>
                 </Box>
+                <CookieConsent style={{'opacity':0.8}}>This website uses cookies to enhance the user experience.</CookieConsent>
                 <Box pb={5} className="footer-wrapper">© 2024 <Link style={{'all': 'unset'}} href='mailto:faizanh53@gmail.com'>sfaizh</Link>.</Box>
             </VStack>
         </Flex>

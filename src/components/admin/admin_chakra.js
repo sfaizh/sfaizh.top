@@ -46,7 +46,6 @@ const Admin = props => {
         // props.setLoadingState(false);
         axios.get(deployment.production + "/blogposts")
             .then(r => {
-                // console.log(r)
                 setPosts(r);
                 // props.setLoadingState(false);
             })
@@ -73,7 +72,6 @@ const Admin = props => {
 
     return (
         <VStack p={5}>
-            {console.log(posts)}
             <Header />
             <Box align="center" pb={10}>
                 <Text pb={3} fontSize="3xl">Editing Blogs as {username}</Text>
