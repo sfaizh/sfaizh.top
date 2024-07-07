@@ -1,31 +1,10 @@
-# Portfolio: Collection (Front-End)
-### Built using React, Redux, MongoDB, and Chakra UI
-Backend [https://github.com/FaizanH/public-profile-backend](public-profile-backend)
-
-## Project Structure
-- $root (src)
-    - app
-    - assets
-    - components
-    - context
-    - features
-    - utils
-        - config
-        - hooks
-- public
+## Built using React, Redux, MongoDB, and Chakra UI
+API Server [https://github.com/FaizanH/public-profile-backend](public-profile-backend)
 
 ## Pages
-- Motorsports
-- Weightlifting
-- Industry Experience
 - Blog
-
-## Reusable Components
-- Content
-    - Card
-- Sidebar
-- Header
-- Footer
+- Projects
+- About
 
 ## Install dependencies
 ```
