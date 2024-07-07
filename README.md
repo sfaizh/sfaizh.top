@@ -1,5 +1,5 @@
 ## Built using React, Redux, MongoDB, and Chakra UI
-API Server [https://github.com/FaizanH/public-profile-backend](public-profile-backend)
+Consumes services in [sfaizh-api](https://github.com/sfaizh/sfaizh-api)
 
 ## Pages
 - Blog
