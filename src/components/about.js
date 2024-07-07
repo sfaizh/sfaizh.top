@@ -41,17 +41,16 @@ const About = () => {
                             Hi! 👋 I'm Faizan.
                         </Text>
                         <Text>
-                            I'm a technical support engineer working with solutions for observability across Data Center/cloud infrastructure, specializing in APM.
-                            I'm ex-Cisco, currently working at Datadog on the Technical Solutions team.
+              I'm Faizan, an aspiring Software Engineer. I'm Ex-cisco and have worked as a systems engineer on their data center and cloud portfolio. Currently I am working at Datadog supporting their observability platform, in the APM team.
                         </Text>
                         <Text>
-                            I run a blog, where I write about cars, motorbikes, and basically anything that rolls on wheels.
+                            I run a blog, where I write about cars, motorbikes, and basically anything that rolls on wheels. I also enjoy travelling and powerlifting in no particular order :)
                         </Text>
                         <Text>
-                            I grew up in South-West Sydney Australia 🇦🇺 and completed my Software engineering degree at University of Technology, Sydney.
+                            I grew up in South-West Sydney Australia 🇦🇺 and completed my software engineering degree at University of Technology, Sydney.
                         </Text>
                         <Text>
-                            If you read something and like, feel free to share it!
+                            I try to write whenever I have the chance. If you read something you like, feel free to share it!
                         </Text>
                     </Box>
                 </Flex>
