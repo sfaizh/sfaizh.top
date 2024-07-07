@@ -1,0 +1,21 @@
+{
+    "posts": [
+        {
+            "id": 1,
+            "type": "card",
+            "section": "Blog",
+            "title": "Example Blog",
+            "subtitle": "Add subtitle here",
+            "body": "Add body text here",
+            "footer": "Footer here",
+            "img_alt": "assets/img/dc5-1-full.jpg",
+            "img_alt1": "assets/img/dc5-2-full.jpg",
+            "img_alt2": "assets/img/dc5-3-full.jpg",
+            "img_alt3": "assets/img/dc5-4-full.jpg",
+            "img_alt4": "assets/img/dc5-5-full.jpg",
+            "img_alt5": "assets/img/dc5-6-full.jpg",
+            "logo": "assets/img/dc5-main.jpg",
+            "logo_size": "100px"
+        }
+    ]
+}

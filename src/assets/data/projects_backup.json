@@ -25,12 +25,21 @@
             "git_uri": "https://github.com/sfaizh/trade-bot"
         },
         {
-            "id": 3,
-            "title": "Support Ticket System Library in Go",
-            "subtitle": "A library that can be used to create extensions for ticket management systems. This can be used by backend services to implement custom support systems which can be consumed by any client. Currently this project is in development, and I will be providing updates regularly on the main repository.",
+            "id": 4,
+            "title": "E-commerce Cart Demo",
+            "subtitle": "A very basic cart demo",
             "logo": "",
             "logo_size": "100px",
+            "git_uri": "",
             "git_uri": "https://github.com/sfaizh/trade-bot"
         },
+        {
+            "id": 4,
+            "title": "Chat App",
+            "subtitle": "Simple multi-user chat app",
+            "logo": "",
+            "logo_size": "100px",
+            "git_uri": ""
+        }
     ]
 }
