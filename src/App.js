@@ -82,7 +82,7 @@ function App() {
             {/* <Route path="/weightlifting" element={<Weightlifting />} /> */}
             {/* <Route path="/industry" element={<Industry />} /> */}
             <Route index element={<Home />} />
-            <Route path="/view/:id" element={<Blog mode={"single"} />} />
+            <Route path="/:id" element={<Blog mode={"single"} />} />
             <Route path="/blog" element={<Blog mode={"all"} />} />
             <Route path="/about" element={<About />} />
             <Route path="/projects" element={<Projects />} />

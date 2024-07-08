@@ -76,7 +76,7 @@ const Home = () => {
                             bgImage={`linear-gradient(rgba(0, 0, 0, 0.527),rgba(0, 0, 0, 0.5)), url('${post.images.main}')`}
                             bgSize='100%'
                         >
-                            <Link to={"/view/" + post._id}>
+                            <Link to={"/" + post._id}>
                                 <VStack h='100'>
                                     <Heading
                                         fontSize={{ base: "xl", md: "2xl" }}
