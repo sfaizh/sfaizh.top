@@ -89,8 +89,10 @@ const EditBlog = props => {
 
     const updatePost = async e => {
         e.preventDefault();
+        let s = slug(title)
 
         const post = {
+            slug: s,
             title,
             subtitle,
             description,
