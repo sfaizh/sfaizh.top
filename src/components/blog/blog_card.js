@@ -7,7 +7,7 @@ import Markdown from "react-remarkable";
 import { Link } from 'react-router-dom';
 import Metadata from "../../utils/metadata";
 import readingTime from "reading-time";
-
+import { Helmet } from "react-helmet";
 import {
     Container,
     Tag
@@ -36,6 +36,12 @@ const Blog_card = props => {
 
     return (
         <VStack>
+          <Helmet>
+            <meta property="og:title" content={props.card.title} /> 
+            <meta property="og:description" content={props.card.subtitle} />
+            <meta property="og:image" content={props.card.images.main} />
+          </Helmet>
+
             <Box align="left" w="100%">
                 <Heading fontWeight='700' as='h1' mb={0}>{props.card.title}</Heading>
             </Box>
