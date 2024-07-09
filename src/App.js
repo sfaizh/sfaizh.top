@@ -82,7 +82,7 @@ function App() {
             {/* <Route path="/weightlifting" element={<Weightlifting />} /> */}
             {/* <Route path="/industry" element={<Industry />} /> */}
             <Route index element={<Home />} />
-            <Route path="/:id" element={<Blog mode={"single"} />} />
+            <Route path="/:slug" element={<Blog mode={"single"} />} />
             <Route path="/blog" element={<Blog mode={"all"} />} />
             <Route path="/about" element={<About />} />
             <Route path="/projects" element={<Projects />} />
@@ -91,7 +91,7 @@ function App() {
               {/* <Route element={<Prefetch />}> */}
               <Route element={<RequireAuth allowedRoles={[...Object.values(ROLES)]} />}>
                 <Route path="/_cpanel" element={<Admin />} />
-                <Route path="/edit/:id" element={<EditBlog />} />
+                <Route path="/edit/:slug" element={<EditBlog />} />
                 <Route path="/new" element={<CreateBlog />} />
               </Route>
             </Route>

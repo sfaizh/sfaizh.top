@@ -99,7 +99,7 @@ const Admin = props => {
                                 return (
                                     <Tr key={i}>
                                         <Td><Checkbox isDisabled></Checkbox></Td>
-                                        <Td><Link to={"/edit/" + data._id}>{data.title}</Link></Td>
+                                        <Td><Link to={"/edit/" + data.slug}>{data.title}</Link></Td>
                                         <Td>{data.date}</Td>
                                         <Td>{data.isPrivate ? "Private" : "Public"}</Td>
                                         <Td>{data.author}</Td>

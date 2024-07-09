@@ -54,7 +54,7 @@ const Blog_card = props => {
                 <Text fontSize="sm">{Metadata(props.card.description)}</Text>
             </Box> */}
             <Box align="center" w="100%" pb={6}>
-                <Link to={"/view/" + props.card._id}>
+                <Link to={"/" + props.card.slug}>
                     <Image src={props.card.images.main} />
                 </Link>
             </Box>
@@ -71,7 +71,7 @@ const Blog_card = props => {
                             <Markdown source={trim(props.card.description, 100)} />
                             <Text>...</Text>
                             <br /><br />
-                            <Link to={"/view/" + props.card._id}>
+                            <Link to={"/" + props.card.slug}>
                                 <Button
                                     colorScheme="gray"
                                     size="sm">Continue reading

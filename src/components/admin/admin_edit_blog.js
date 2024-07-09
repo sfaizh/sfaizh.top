@@ -43,12 +43,12 @@ const EditBlog = props => {
 
     const onSubmit = (data) => updatePost();
     // const { control, handleSubmit } = useForm();
-    const { id } = useParams();
+    const { slug } = useParams();
 
     useEffect(() => {
         const fetch = async () => {
             try {
-                const r = await axios.get(deployment.production + "/blogposts/" + id).then(r => {
+                const r = await axios.get(deployment.production + "/blogposts/" + slug).then(r => {
                     setTitle(r.data.title)
                     setSubtitle(r.data.subtitle)
                     setDesc(r.data.description)
@@ -80,7 +80,7 @@ const EditBlog = props => {
         e.preventDefault();
 
         try {
-            await axios.delete(deployment.production + "/blogposts/" + id)
+            await axios.delete(deployment.production + "/blogposts/" + slug)
             nav(-1)
         } catch (e) {
             console.log(e.message);
@@ -105,7 +105,7 @@ const EditBlog = props => {
         }
 
         try {
-            await axios.post(deployment.production + "/blogposts/update/" + id, post)
+            await axios.post(deployment.production + "/blogposts/update/" + slug, post)
             nav(-1)
         } catch (e) {
             console.log(e.message);
@@ -115,7 +115,7 @@ const EditBlog = props => {
     const viewPost = async e => {
         e.preventDefault();
 
-        nav("/view/" + id)
+        nav("/" + slug)
     }
 
 

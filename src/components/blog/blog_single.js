@@ -22,7 +22,7 @@ const ViewBlog = props => {
     const [isScreenLarge] = useMediaQuery("(min-width: 750px");
 
     const [post, setPost] = useState(null);
-    const { id } = useParams();
+    const { slug } = useParams();
 
     const { username, isAdmin } = useAuth();
 
@@ -31,7 +31,7 @@ const ViewBlog = props => {
         // props.setLoadingState(true);
         // props.setLoadingState(false);
         // if (isAdmin) {
-        axios.get(deployment.production + "/blogposts/" + id)
+        axios.get(deployment.production + "/blogposts/" + slug)
             .then(r => {
                 setPost(r);
                 // props.setLoadingState(false);
@@ -62,7 +62,7 @@ const ViewBlog = props => {
                 <Box className="giscus">
                     <Giscus
                         id="comments"
-                        repo="sfaizh/public-profile-frontend"
+                        repo="sfaizh/sfaizh.top"
                         repoId="R_kgDOKe4B7A"
                         category="General"
                         categoryId="DIC_kwDOKe4B7M4CftuX"
