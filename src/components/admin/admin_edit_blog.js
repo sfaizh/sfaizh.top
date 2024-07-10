@@ -90,7 +90,7 @@ const EditBlog = props => {
 
   const updatePost = async e => {
     e.preventDefault();
-    let s = slugify(title)
+    const s = slugify(title)
 
     const post = {
       slug: s,
