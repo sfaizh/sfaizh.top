@@ -25,7 +25,7 @@ import { UserAuth } from '../../context/AuthContext';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import axios from "axios";
 import deployment from "../../deployment.json";
-import { slugify } from "react-slugify";
+import slugify from "react-slugify";
 
 const EditBlog = props => {
   // const [post, setPost] = useState( null );
