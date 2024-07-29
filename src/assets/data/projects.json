@@ -1,28 +1,20 @@
 {
     "posts": [
         {
-            "id": 1,
-            "title": "MERN Stack Firebase Starter Kit",
-            "subtitle": "A template I've put together to help get up and running with MERN stack on Google Firebase",
-            "logo": "",
-            "logo_size": "100px",
-            "git_uri": "https://github.com/sfaizh/mern-firebase-starter"
-        },
-        {
             "id": 2,
-            "title": "My Public Site",
+            "title": "sfaizh.top (aka this site)",
             "subtitle": "This website, built using React, Redux, MongoDB, and Chakra UI",
             "logo": "",
             "logo_size": "100px",
             "git_uri": "https://github.com/sfaizh/public-profile-frontend"
         },
         {
-            "id": 3,
-            "title": "Trading Bot",
-            "subtitle": "Python bot that can be configured to automate trading by analysing intervals and setting a stoploss. Consumes Coinspot's API",
+            "id": 1,
+            "title": "MERN Stack Firebase Starter Kit",
+            "subtitle": "A template I've put together to help get up and running with MERN stack on Google Firebase",
             "logo": "",
             "logo_size": "100px",
-            "git_uri": "https://github.com/sfaizh/trade-bot"
+            "git_uri": "https://github.com/sfaizh/mern-firebase-starter"
         },
         {
             "id": 3,
