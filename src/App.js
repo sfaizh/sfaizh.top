@@ -33,6 +33,23 @@ import { ROLES } from './utils/config/roles'
 import ProtectedRoute from "./components/admin/protected-route";
 import Unauthorised from "./components/admin/unauthorised";
 
+// Datadog
+import { datadogRum } from '@datadog/browser-rum'
+
+datadogRum.init({
+  applicationId: 'd94d24b8-60f8-4989-9598-78d090919cc3', 
+  clientToken: 'pub55922079777aff7713ff0e54ae4d3227',
+  site: 'datadoghq.com',
+  service: 'sfaizh.top',
+  env: 'staging-1',
+  sessionSampleRate: 100,
+  sessionReplaySampleRate: 20,
+  trackUserInteractions: true,
+  trackResources: true,
+  trackLongTasks: true,
+  defaultPrivacyLevel: 'mask-user-input'
+})
+
 const theme = {
   breakpoints: {
     xs: "30em",
