@@ -28,20 +28,17 @@ const Blog_card = props => {
 
     useEffect(() => {
         if (props.card) {
-            setTags(props.card.tags.split(' '))
-            setDate(props.card.date.split('T')[0])
-            setContent(props.card.description);
+          setTags(props.card.tags.split(' '))
+          setDate(props.card.date.split('T')[0])
+          setContent(props.card.description);
+
+          document.title = props.card.title
+          document.image = props.card.images.main
         }
     }, []);
 
     return (
         <VStack>
-          /*<Helmet>*/
-            /* <meta property="og:title" content={props.card.title} /> */
-            /* <meta property="og:description" content={props.card.subtitle} />*/
-            /* <meta property="og:image" content={props.card.images.main} />*/
-          /*</Helmet>*/
-
             <Box align="left" w="100%">
                 <Heading fontWeight='700' as='h1' mb={0}>{props.card.title}</Heading>
             </Box>
