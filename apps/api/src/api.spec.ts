@@ -56,8 +56,15 @@ describe('GET /posts', () => {
 
   it('filters by tag', async () => {
     const response = await request(app).get(`${API_ROUTES.posts}?tag=vim`).expect(200);
-    expect(response.body).toHaveLength(1);
-    expect(response.body[0].slug).toBe('vim-motions-as-a-design-language');
+    const slugs = response.body.map((post: { slug: string }) => post.slug);
+
+    // Assert the filter, not the corpus: counting posts here means every new
+    // one tagged `vim` breaks a test that has nothing to do with it.
+    expect(response.body.length).toBeGreaterThan(0);
+    for (const post of response.body) expect(post.tags).toContain('vim');
+
+    expect(slugs).toContain('vim-motions-as-a-design-language');
+    expect(slugs).not.toContain('building-a-terminal-blog');
   });
 
   it('returns an empty list for an unknown tag', async () => {
@@ -104,8 +111,12 @@ describe('GET /posts/:slug/rendered', () => {
 describe('GET /posts/search', () => {
   it('finds posts by body text', async () => {
     const response = await request(app).get(API_ROUTES.search('split-flap')).expect(200);
-    expect(response.body[0].post.slug).toBe('building-a-terminal-blog');
-    expect(response.body[0].excerpt).toContain('split-flap');
+    const hit = response.body.find(
+      (result: { post: { slug: string } }) => result.post.slug === 'building-a-terminal-blog'
+    );
+
+    expect(hit).toBeDefined();
+    expect(hit.excerpt).toContain('split-flap');
   });
 
   it('rejects a query that is too short', async () => {
