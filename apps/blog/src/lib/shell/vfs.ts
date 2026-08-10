@@ -35,18 +35,9 @@ export const POSTS_DIR = '~/posts';
 export const STATIC_FILES: Record<string, string> = {
   'about.md': `# whoami
 
-Faizan — engineer. I build backends that stay up and interfaces that get out of
-the way, and I have strong opinions about both.
+I like a good challenge and occasionally also work on cars.
 
-This site is the long-form half of that. The short-form half is a terminal I
-never close.
-
-Things I care about: systems that fail loudly, tools that respect muscle
-memory, and prose that says what it means on the first read.
-
-  posts     what I have written
-  tags      what I write about
-  contact   how to reach me
+Things I care about: Systems engineering, site reliability, first principles and standards whether applied to frontend or backend and collaboration.
 `,
 
   'now.txt': `Currently
@@ -55,16 +46,15 @@ memory, and prose that says what it means on the first read.
   · Reading about editor design and text rendering.
   · Writing the posts listed under ~/posts.
 
-This file is a "now page" — the honest, dated answer to "what are you up to?".
+This file is a "now page", the honest, dated answer to "what are you up to?".
 `,
 
   'contact.txt': `Reach me
 ────────
-  email     hello@sfaizh.top
+  email     faizanh53@gmail.com
   github    github.com/sfaizh
   site      https://sfaizh.top
-
-I read everything. I reply to most of it.
+  substack  https://substack.com/@deadpacket
 `,
 
   '.zshrc': `# ~/.zshrc — the parts that matter
