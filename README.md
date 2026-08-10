@@ -42,7 +42,13 @@ npm run dev:api      # the NestJS API alone, on :3333
 npm test             # every unit test
 npm run e2e          # Playwright, against a production build
 npm run verify       # content bundle + typecheck + tests + build
+npm run favicon:build  # redraw the site icon (tools/scripts/generate-favicon.mjs)
 ```
+
+The favicon is drawn in code rather than exported from a design tool, so it
+stays in the Catppuccin palette and shows up as a reviewable diff. It emits
+`favicon.ico` (16/32/48), `icon.svg` and `apple-icon.png` into `apps/blog/src/app/`,
+where Next's App Router picks them up automatically.
 
 ---
 
@@ -153,7 +159,7 @@ apps/
 libs/
   shared/          codec · markdown · frontmatter · sanitiser · highlighter
 content/posts/     the posts, as markdown
-tools/scripts/     content bundler, password hasher, Supabase seeder
+tools/scripts/     content bundler, icon generator, password hasher, seeder
 supabase/          schema.sql
 ```
 

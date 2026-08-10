@@ -5,7 +5,7 @@ import './global.css';
 export const metadata: Metadata = {
   metadataBase: new URL('https://sfaizh.top'),
   title: {
-    default: 'sfaizh.top — engineering blog',
+    default: 'sfaizh.top engineering blog',
     template: '%s · sfaizh.top',
   },
   description:
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'sfaizh.top',
-    title: 'sfaizh.top — engineering blog',
+    title: 'sfaizh.top engineering blog',
     description: 'An engineering blog with a terminal for a front door.',
   },
   twitter: { card: 'summary_large_image' },
