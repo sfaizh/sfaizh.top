@@ -10,6 +10,11 @@ import { usePrefersReducedMotion } from '../lib/hooks';
  * target, so letters visibly "roll" the way a real flap unit does rather than
  * cross-fading. Positions start at staggered offsets so the board ripples from
  * left to right instead of resolving in lockstep.
+ *
+ * The animation state lives in a ref, not in React state. The frame loop has
+ * to know synchronously whether every column has landed in order to decide
+ * whether to schedule another frame, and a state updater cannot answer that —
+ * React runs it later, during render.
  */
 
 const ALPHABET = ' ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-';
@@ -27,13 +32,12 @@ export function SplitFlapHeader({ className }: Props) {
   const width = useMemo(() => Math.max(...PHRASES.map((phrase) => phrase.length)), []);
 
   const [phraseIndex, setPhraseIndex] = useState(0);
-  const [display, setDisplay] = useState<string[]>(() => padTo(PHRASES[0], width).split(''));
-  const [settling, setSettling] = useState<boolean[]>(() => Array(width).fill(false));
+  // Starts blank so the board flaps in on first paint.
+  const [display, setDisplay] = useState<string[]>(() => Array(width).fill(' '));
+  const [landed, setLanded] = useState<boolean[]>(() => Array(width).fill(false));
 
-  const targetRef = useRef(padTo(PHRASES[0], width));
-  const frameRef = useRef<number | null>(null);
+  const displayRef = useRef(display);
 
-  // Cycle the phrase on a timer; the animation effect reacts to the change.
   useEffect(() => {
     if (reducedMotion) return;
     const timer = window.setInterval(() => {
@@ -44,54 +48,49 @@ export function SplitFlapHeader({ className }: Props) {
 
   useEffect(() => {
     const target = padTo(PHRASES[phraseIndex], width);
-    targetRef.current = target;
 
     if (reducedMotion) {
-      setDisplay(target.split(''));
+      const settled = target.split('');
+      displayRef.current = settled;
+      setDisplay(settled);
       return;
     }
 
     // Stagger: each column waits a few ticks longer than the one before it.
     const delays = Array.from({ length: width }, (_, index) => index * 2);
     let tick = 0;
+    let timer = 0;
 
     const advance = () => {
-      let settled = true;
-      const nextSettling: boolean[] = Array(width).fill(false);
+      const next = displayRef.current.slice();
+      const justLanded = Array<boolean>(width).fill(false);
+      let moving = false;
 
-      setDisplay((current) => {
-        const next = current.slice();
-        for (let column = 0; column < width; column++) {
-          const wanted = targetRef.current[column] ?? ' ';
-          if (next[column] === wanted) continue;
-          if (tick < delays[column]) {
-            settled = false;
-            continue;
-          }
+      for (let column = 0; column < width; column++) {
+        const wanted = target[column] ?? ' ';
+        if (next[column] === wanted) continue;
 
-          const position = ALPHABET.indexOf(next[column]?.toUpperCase() ?? ' ');
-          const stepped = ALPHABET[(position + 1 + ALPHABET.length) % ALPHABET.length];
-          next[column] = stepped;
-          nextSettling[column] = true;
-          if (stepped !== wanted) settled = false;
-        }
-        return next;
-      });
+        // Something still differs from the target, so keep the loop alive
+        // even for columns that are only waiting their turn.
+        moving = true;
+        if (tick < delays[column]) continue;
 
-      setSettling(nextSettling);
+        const position = ALPHABET.indexOf((next[column] ?? ' ').toUpperCase());
+        next[column] = ALPHABET[(position + 1 + ALPHABET.length) % ALPHABET.length];
+        // The flap "clunks" on the tick it arrives, not on every tick.
+        if (next[column] === wanted) justLanded[column] = true;
+      }
+
+      displayRef.current = next;
+      setDisplay(next);
+      setLanded(justLanded);
       tick += 1;
 
-      if (!settled) {
-        frameRef.current = window.setTimeout(advance, STEP_MS);
-      } else {
-        setSettling(Array(width).fill(false));
-      }
+      if (moving) timer = window.setTimeout(advance, STEP_MS);
     };
 
-    frameRef.current = window.setTimeout(advance, STEP_MS);
-    return () => {
-      if (frameRef.current !== null) window.clearTimeout(frameRef.current);
-    };
+    timer = window.setTimeout(advance, STEP_MS);
+    return () => window.clearTimeout(timer);
   }, [phraseIndex, reducedMotion, width]);
 
   return (
@@ -109,7 +108,7 @@ export function SplitFlapHeader({ className }: Props) {
         {display.map((character, index) => (
           <span
             key={index}
-            className={`flap ${settling[index] ? 'flap-settling' : ''}`}
+            className={`flap ${landed[index] ? 'flap-settling' : ''}`}
             style={{ transformOrigin: 'center center' }}
           >
             {character === ' ' ? ' ' : character}

@@ -8,6 +8,7 @@ import { applyHighlights, clearHighlights, setActiveHighlight } from '../../lib/
 import {
   EMPTY_PENDING,
   READER_KEYS,
+  READER_KEYS_ESSENTIAL,
   describePending,
   reduceKey,
   resolveScroll,
@@ -28,7 +29,7 @@ interface Props {
   isTouch: boolean;
 }
 
-type Mode = 'normal' | 'search';
+type Mode = 'normal' | 'search' | 'command';
 
 export function Reader({ slug, onQuit, isTouch }: Props) {
   const reducedMotion = usePrefersReducedMotion();
@@ -38,6 +39,8 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
   const [mode, setMode] = useState<Mode>('normal');
   const [pending, setPending] = useState<PendingState>(EMPTY_PENDING);
   const [query, setQuery] = useState('');
+  const [command, setCommand] = useState('');
+  const [notice, setNotice] = useState<string | null>(null);
   const [committedQuery, setCommittedQuery] = useState('');
   const [matchIndex, setMatchIndex] = useState(0);
   const [matchCount, setMatchCount] = useState(0);
@@ -175,9 +178,60 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
     };
   }, [slug]);
 
+  /**
+   * Vim's command line. The post footer advertises `:q`, so typing it has to
+   * do something — and has to be visible while you type it.
+   */
+  const runCommand = useCallback(
+    (entered: string) => {
+      const name = entered.trim().replace(/^:/, '').toLowerCase();
+
+      if (['q', 'q!', 'quit', 'x', 'wq', 'exit'].includes(name)) {
+        onQuit();
+        return;
+      }
+      if (['h', 'help', '?'].includes(name)) {
+        setShowHelp(true);
+        return;
+      }
+      if (name === '') return;
+
+      setNotice(`E492: Not an editor command: ${name}`);
+    },
+    [onQuit]
+  );
+
+  // A message stays until it is read: the next keypress dismisses it, and it
+  // times out on its own if nothing else happens.
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(null), 6000);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
   // ── keyboard ──────────────────────────────────────────────────────────────
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
+      if (mode === 'command') {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          const entered = command;
+          setMode('normal');
+          setCommand('');
+          runCommand(entered);
+          scrollRef.current?.focus({ preventScroll: true });
+          return;
+        }
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          setMode('normal');
+          setCommand('');
+          scrollRef.current?.focus({ preventScroll: true });
+          return;
+        }
+        return;
+      }
+
       if (mode === 'search') {
         if (event.key === 'Enter') {
           event.preventDefault();
@@ -205,6 +259,9 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
         return;
       }
 
+      // Any key in normal mode dismisses a pending message, as in Vim.
+      if (notice) setNotice(null);
+
       // Let the browser keep its own shortcuts.
       if (event.metaKey || event.altKey) return;
       if (event.ctrlKey && !['d', 'u', 'f', 'b'].includes(event.key.toLowerCase())) return;
@@ -230,8 +287,14 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
           setShowHelp(true);
           return;
         case 'search-open':
+          setNotice(null);
           setMode('search');
           setQuery('');
+          return;
+        case 'command-open':
+          setNotice(null);
+          setMode('command');
+          setCommand('');
           return;
         case 'search-next':
           stepMatch(action.direction);
@@ -262,13 +325,16 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
       }
     },
     [
+      command,
       committedQuery,
       jumpToElement,
       lineHeight,
       mode,
+      notice,
       onQuit,
       pending,
       query,
+      runCommand,
       runSearch,
       scrollTo,
       showHelp,
@@ -366,7 +432,10 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
       )}
 
       <StatusLine
-        mode={{ label: mode === 'search' ? 'SEARCH' : 'NORMAL', tone: mode === 'search' ? 'peach' : 'mauve' }}
+        mode={{
+          label: mode === 'search' ? 'SEARCH' : mode === 'command' ? 'COMMAND' : 'NORMAL',
+          tone: mode === 'normal' ? 'mauve' : 'peach',
+        }}
         left={[
           { label: post ? `${post.slug}.md` : `${slug}.md`, title: post?.title },
           { label: 'markdown', muted: true },
@@ -374,43 +443,54 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
         right={statusRight}
       >
         {mode === 'search' ? (
-          <SearchPrompt value={query} onChange={setQuery} onKeyDown={onKeyDown} />
+          <LinePrompt sigil="/" value={query} onChange={setQuery} onKeyDown={onKeyDown} label="Search within the post" />
+        ) : mode === 'command' ? (
+          <LinePrompt sigil=":" value={command} onChange={setCommand} onKeyDown={onKeyDown} label="Reader command" />
+        ) : notice ? (
+          <span className="truncate font-bold text-[color:var(--ctp-red)]">{notice}</span>
         ) : pendingLabel ? (
           <span className="font-bold text-[color:var(--ctp-yellow)]">{pendingLabel}</span>
         ) : isTouch ? (
           <span className="truncate">scroll · use the buttons above · ✕ closes</span>
         ) : (
-          <KeyLegend keys={READER_KEYS} />
+          <KeyLegend keys={READER_KEYS_ESSENTIAL} />
         )}
       </StatusLine>
     </div>
   );
 }
 
-function SearchPrompt({
+/** The `/` and `:` prompts — same widget, different sigil. */
+function LinePrompt({
+  sigil,
   value,
   onChange,
   onKeyDown,
+  label,
 }: {
+  sigil: string;
   value: string;
   onChange: (next: string) => void;
   onKeyDown: (event: React.KeyboardEvent) => void;
+  label: string;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => ref.current?.focus(), []);
 
   return (
-    <div className="flex w-full items-center gap-1 text-[color:var(--ctp-text)]">
-      <span className="text-[color:var(--ctp-peach)]">/</span>
+    <div className="flex w-full min-w-0 items-center gap-1 text-[color:var(--ctp-text)]">
+      <span className="text-[color:var(--ctp-peach)]">{sigil}</span>
       <input
         ref={ref}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={onKeyDown}
-        className="w-full bg-transparent outline-none"
+        className="w-full min-w-0 bg-transparent outline-none"
         style={{ caretColor: 'var(--ctp-rosewater)' }}
-        aria-label="Search within the post"
+        aria-label={label}
         autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
         spellCheck={false}
       />
     </div>

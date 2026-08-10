@@ -18,6 +18,7 @@ export type Motion =
 export type Action =
   | { kind: 'motion'; motion: Motion; count: number }
   | { kind: 'search-open' }
+  | { kind: 'command-open' }
   | { kind: 'search-next'; direction: 1 | -1 }
   | { kind: 'help' }
   | { kind: 'quit' }
@@ -102,6 +103,8 @@ export function reduceKey(
       return motion({ kind: 'paragraph', direction: -1 }, count);
     case '/':
       return { action: { kind: 'search-open' }, pending: EMPTY_PENDING };
+    case ':':
+      return { action: { kind: 'command-open' }, pending: EMPTY_PENDING };
     case 'n':
       return { action: { kind: 'search-next', direction: 1 }, pending: EMPTY_PENDING };
     case 'N':
@@ -148,6 +151,20 @@ export function resolveScroll(
   }
 }
 
+/**
+ * What the statusline shows. `man` does not print its whole key map along the
+ * bottom either — it prints the way out and the way to find everything else.
+ * The full map lives behind `?`, and the short list cannot overflow into a
+ * horizontal scrollbar on a narrow window.
+ */
+export const READER_KEYS_ESSENTIAL = [
+  ['j / k', 'scroll'],
+  ['/', 'search'],
+  ['?', 'keys'],
+  [':q', 'back'],
+] as const;
+
+/** The full map, shown in the `?` overlay. */
 export const READER_KEYS = [
   ['j / k', 'line'],
   ['^D / ^U', 'half page'],
@@ -158,5 +175,6 @@ export const READER_KEYS = [
   ['/', 'search'],
   ['n / N', 'next / prev match'],
   ['?', 'keys'],
-  ['q', 'back to shell'],
+  [':q', 'back to shell'],
+  ['q / Esc', 'back to shell'],
 ] as const;

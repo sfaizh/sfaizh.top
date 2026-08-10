@@ -89,10 +89,16 @@ export function StatusLine({ mode, left = [], right = [], children }: Props) {
   );
 }
 
-/** A `man`-page style key legend: `q` quit · `/` search · … */
+/**
+ * A `man`-page style key legend: `q` quit · `/` search · …
+ *
+ * It clips rather than scrolls. A status bar that grows its own horizontal
+ * scrollbar is worse than one that shows fewer keys, so entries past the
+ * available width are simply hidden — the full map lives behind `?`.
+ */
 export function KeyLegend({ keys }: { keys: readonly (readonly [string, string])[] }) {
   return (
-    <div className="scroll-themed flex min-w-0 items-center gap-3 overflow-x-auto whitespace-nowrap">
+    <div className="flex min-w-0 items-center gap-3 overflow-hidden whitespace-nowrap">
       {keys.map(([key, label]) => (
         <span key={key} className="flex shrink-0 items-center gap-1">
           <kbd className="rounded-[3px] bg-[color:var(--ctp-surface1)] px-1.5 py-[1px] text-[color:var(--ctp-text)]">

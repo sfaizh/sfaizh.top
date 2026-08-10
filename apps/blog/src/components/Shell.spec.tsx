@@ -123,6 +123,50 @@ describe('Shell', () => {
     expect(screen.getByLabelText('Terminal input')).toBeTruthy();
   });
 
+  it('leaves the reader with the :q command, showing it as you type', async () => {
+    const input = await renderShell();
+    await run(input, 'open building-a-terminal-blog');
+
+    const surface = await screen.findByRole('document');
+
+    // ':' opens the command line and the prompt becomes visible.
+    await act(async () => {
+      fireEvent.keyDown(surface, { key: ':' });
+    });
+    const commandLine = (await screen.findByLabelText('Reader command')) as HTMLInputElement;
+    expect(screen.getByText('COMMAND')).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.change(commandLine, { target: { value: 'q' } });
+    });
+    expect(commandLine.value).toBe('q');
+
+    await act(async () => {
+      fireEvent.keyDown(commandLine, { key: 'Enter' });
+    });
+    expect(screen.getByLabelText('Terminal input')).toBeTruthy();
+  });
+
+  it('reports an unknown reader command instead of silently ignoring it', async () => {
+    const input = await renderShell();
+    await run(input, 'open building-a-terminal-blog');
+
+    const surface = await screen.findByRole('document');
+    await act(async () => {
+      fireEvent.keyDown(surface, { key: ':' });
+    });
+
+    const commandLine = await screen.findByLabelText('Reader command');
+    await act(async () => {
+      fireEvent.change(commandLine, { target: { value: 'wat' } });
+      fireEvent.keyDown(commandLine, { key: 'Enter' });
+    });
+
+    expect(await screen.findByText(/E492: Not an editor command: wat/)).toBeTruthy();
+    // Still in the reader.
+    expect(screen.getByRole('document')).toBeTruthy();
+  });
+
   it('navigates to the admin console for sudo -i', async () => {
     const input = await renderShell();
     await run(input, 'sudo -i');

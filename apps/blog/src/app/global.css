@@ -57,7 +57,12 @@ body {
 }
 
 /* Very subtle CRT wash — enough to feel like a phosphor screen, not enough to
-   hurt. Disabled entirely for reduced-motion and for the light flavour. */
+   hurt. Disabled entirely for reduced-motion and for the light flavour.
+
+   Deliberately NOT `mix-blend-mode`. Blending a fixed, full-viewport layer
+   forces the compositor to re-blend everything beneath it on every scroll
+   frame, which reads as flicker as images scroll under it. A plain translucent
+   overlay, promoted to its own layer, is free. */
 .crt::after {
   content: '';
   position: fixed;
@@ -67,10 +72,10 @@ body {
   background: repeating-linear-gradient(
     to bottom,
     transparent 0 2px,
-    color-mix(in srgb, var(--ctp-crust) 26%, transparent) 2px 3px
+    color-mix(in srgb, var(--ctp-crust) 55%, transparent) 2px 3px
   );
-  opacity: 0.45;
-  mix-blend-mode: multiply;
+  opacity: 0.3;
+  transform: translateZ(0);
 }
 
 :root[data-flavour='latte'] .crt::after {
@@ -434,6 +439,9 @@ body {
 .prose-reader .md-figure img {
   width: 100%;
   height: auto;
+  /* Its own layer, so decoding a lazily-loaded image never repaints the
+     surrounding prose. */
+  transform: translateZ(0);
   border-radius: 8px;
   border: 1px solid var(--ctp-surface0);
   background: var(--ctp-mantle);

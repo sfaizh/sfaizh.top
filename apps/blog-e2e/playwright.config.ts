@@ -16,9 +16,6 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'on-first-retry',
-    // Run the full Chromium build rather than the separate headless shell —
-    // one browser download, and the same engine a visitor actually has.
-    channel: 'chromium',
   },
   webServer: {
     command: 'npm run e2e:serve',

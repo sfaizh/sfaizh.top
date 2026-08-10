@@ -114,6 +114,7 @@ suggestion ahead of the cursor, and a menu on the second `Tab`.
 | `[[` / `]]` | Previous / next heading |
 | `/`, then `n` / `N` | Search, next match, previous match |
 | `?` | The full key map |
+| `:` | Command line — `:q`, `:quit`, `:help` |
 | `q` / `Esc` | Back to the shell |
 
 Counts work: `10j`, `3}`. A pending count or prefix is shown in the statusline

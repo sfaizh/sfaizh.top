@@ -24,9 +24,15 @@ test.describe('boot sequence', () => {
   test('plays on the first visit and is skippable', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByText('Reading package lists... Done')).toBeVisible();
+    // Assert on the boot surface rather than one of its lines: the lines each
+    // appear on their own timer and the whole sequence removes itself after a
+    // couple of seconds, which makes any single line a race on a slow runner.
+    const booting = page.getByLabel('Booting');
+    await expect(booting).toBeVisible();
+
     await page.keyboard.press('Space');
 
+    await expect(booting).toHaveCount(0);
     await expect(page.getByLabel('Terminal input')).toBeAttached();
   });
 
@@ -88,7 +94,15 @@ test.describe('the shell', () => {
 
   test('remembers history across a reload', async ({ page }) => {
     await run(page, 'whoami');
+
+    // The command is persisted by an effect, so wait for the write itself
+    // rather than assuming it has happened by the time the reload lands.
+    await expect
+      .poll(() => page.evaluate(() => window.localStorage.getItem('sfaizh:history:v1')))
+      .toContain('whoami');
+
     await page.reload();
+    await expect(page.getByText('sfsh 1.0').first()).toBeVisible();
 
     const input = page.getByLabel('Terminal input');
     await input.click();
@@ -153,6 +167,29 @@ test.describe('the reader', () => {
   test('returns to the shell on q', async ({ page }) => {
     await page.keyboard.press('q');
     await expect(page.getByLabel('Terminal input')).toBeAttached();
+  });
+
+  test('shows the : command line as you type and leaves on :q', async ({ page }) => {
+    await page.keyboard.press(':');
+
+    const commandLine = page.getByLabel('Reader command');
+    await expect(commandLine).toBeFocused();
+    await expect(page.getByRole('status').filter({ hasText: 'COMMAND' })).toBeVisible();
+
+    await commandLine.fill('q');
+    await expect(commandLine).toHaveValue('q');
+    await commandLine.press('Enter');
+
+    await expect(page.getByLabel('Terminal input')).toBeAttached();
+  });
+
+  test('reports an unknown : command instead of ignoring it', async ({ page }) => {
+    await page.keyboard.press(':');
+    await page.getByLabel('Reader command').fill('nonsense');
+    await page.getByLabel('Reader command').press('Enter');
+
+    await expect(page.getByText(/E492: Not an editor command: nonsense/)).toBeVisible();
+    await expect(page.getByRole('document')).toBeVisible();
   });
 });
 

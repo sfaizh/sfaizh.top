@@ -108,6 +108,10 @@ describe('reduceKey', () => {
     expect(press(['{']).action).toMatchObject({ motion: { kind: 'paragraph', direction: -1 } });
   });
 
+  it('opens the command line on :', () => {
+    expect(press([':']).action).toEqual({ kind: 'command-open' });
+  });
+
   it('maps search, help and quit', () => {
     expect(press(['/']).action).toEqual({ kind: 'search-open' });
     expect(press(['n']).action).toEqual({ kind: 'search-next', direction: 1 });
