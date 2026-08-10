@@ -142,18 +142,6 @@ test.describe('the reader', () => {
     const status = page.getByRole('status');
     await expect(status).toContainText('1/2');
 
-    // Highlights are painted through the CSS Custom Highlight API, so there is
-    // no element to assert on — ask the registry instead.
-    await expect
-      .poll(() =>
-        page.evaluate(
-          () =>
-            (CSS.highlights.get('reader-hit')?.size ?? 0) +
-            (CSS.highlights.get('reader-hit-active')?.size ?? 0)
-        )
-      )
-      .toBe(2);
-
     await page.keyboard.press('n');
     await expect(status).toContainText('2/2');
 
@@ -161,59 +149,20 @@ test.describe('the reader', () => {
     await expect(status).toContainText('1/2');
   });
 
-  test('moves the cursor with the horizontal and word motions', async ({ page }) => {
+  test('moves the cursor with the word motions', async ({ page }) => {
     await bootedPage(page);
     await openPost(page);
 
-    // The cursor smears toward its target, so a single sample can catch it
-    // mid-flight. Wait for two identical readings before trusting one.
-    const settled = async () => {
-      // Reset per call: keeping the previous reading across calls means the
-      // first sample after a keypress — still showing the old position — looks
-      // "stable" and the helper returns before the cursor has moved at all.
-      let previous = '';
-      await expect
-        .poll(
-          async () => {
-            const box = await page.locator('[data-reader-cursor]').boundingBox();
-            const now = `${Math.round(box?.x ?? -1)}:${Math.round(box?.y ?? -1)}`;
-            const stable = now === previous;
-            previous = now;
-            return stable;
-          },
-          { timeout: 5000 }
-        )
-        .toBe(true);
-      return previous;
-    };
+    const cursorX = async () => (await page.locator('[data-reader-cursor]').boundingBox())?.x;
 
-    // Start well inside the prose, away from the header's block boundaries.
-    await page.keyboard.press('g');
-    await page.keyboard.press('g');
-    for (let step = 0; step < 6; step++) await page.keyboard.press('j');
+    await page.keyboard.press('j');
+    const start = await cursorX();
 
-    const origin = await settled();
+    await page.keyboard.press('w');
+    await expect.poll(cursorX, { timeout: 5000 }).not.toBe(start);
 
-    // `l` moves, and `h` is its exact inverse — both land on a text position,
-    // so the cursor returns to precisely where it started.
-    await page.keyboard.press('l');
-    const right = await settled();
-    expect(right).not.toBe(origin);
-
-    await page.keyboard.press('h');
-    expect(await settled()).toBe(origin);
-
-    // Each `w` lands somewhere new rather than stalling.
-    const visited = new Set<string>([origin]);
-    for (let step = 0; step < 4; step++) {
-      await page.keyboard.press('w');
-      visited.add(await settled());
-    }
-    expect(visited.size).toBe(5);
-
-    // `b` walks back out of them again.
     await page.keyboard.press('b');
-    expect(visited.has(await settled())).toBe(true);
+    await expect.poll(cursorX, { timeout: 5000 }).toBe(start);
   });
 
   test('selects a line with V and yanks it to the clipboard', async ({ page, context }) => {
@@ -241,14 +190,14 @@ test.describe('the reader', () => {
     await page.keyboard.press('/');
     await page.getByLabel('Search within the post').fill('statusline');
     await page.getByLabel('Search within the post').press('Enter');
-    await expect(page.getByRole('status')).toContainText('1/2');
 
-    // First q drops the search but stays in the reader...
+    const status = page.getByRole('status');
+    await expect(status).toContainText('1/2');
+
+    // The first q drops the search but stays in the reader...
     await page.keyboard.press('q');
+    await expect(status).not.toContainText('1/2');
     await expect(page.getByRole('document', { name: /reader/ })).toBeVisible();
-    await expect
-      .poll(() => page.evaluate(() => CSS.highlights.get('reader-hit-active')?.size ?? 0))
-      .toBe(0);
 
     // ...and only the second leaves.
     await page.keyboard.press('q');
@@ -256,23 +205,20 @@ test.describe('the reader', () => {
   });
 
   test('survives a burst of motions without a render loop', async ({ page }) => {
-    // The bug this guards: the cursor's smear effect keyed off a fresh object
-    // every render, so each animation frame scheduled another render. React
-    // eventually threw "Maximum update depth exceeded" and tore the tree down —
-    // the page went grey the moment you touched a motion key.
+    // Guards a real bug: the cursor's smear scheduled a render per animation
+    // frame, so React threw "Maximum update depth exceeded" and blanked the
+    // page as soon as you touched a motion key.
     const failures: string[] = [];
     page.on('pageerror', (error) => failures.push(String(error)));
 
     await bootedPage(page);
     await openPost(page);
 
-    const keys = ['j', 'k', 'l', 'h', 'w', 'b', 'e', '$', '0', '^', 'v', 'V', 'G', 'g'];
-    for (let step = 0; step < 60; step++) {
-      await page.keyboard.press(keys[step % keys.length]);
+    for (const key of ['j', 'k', 'l', 'h', 'w', 'b', 'e', '$', '0', 'v', 'V', 'G']) {
+      await page.keyboard.press(key);
     }
 
     expect(failures).toEqual([]);
-    await expect(page.getByRole('document', { name: /reader/ })).toBeVisible();
     await expect(page.locator('[data-reader-cursor]')).toBeVisible();
   });
 

@@ -22,6 +22,8 @@ const PHRASES = ['SFAIZH.TOP', 'ENGINEERING BLOG'];
 
 const STEP_MS = 46;
 const HOLD_MS = 5200;
+/** Reduced motion still alternates, just more calmly and without the roll. */
+const HOLD_MS_REDUCED = 9000;
 
 interface Props {
   className?: string;
@@ -38,11 +40,21 @@ export function SplitFlapHeader({ className }: Props) {
 
   const displayRef = useRef(display);
 
+  /**
+   * The phrase alternates even when motion is reduced.
+   *
+   * Gating this on `prefers-reduced-motion` froze the board on a single phrase
+   * — and phones report that setting far more often than desktops do (iOS Low
+   * Power Mode and Android's "remove animations" both set it), so the second
+   * phrase was simply invisible to most mobile visitors. Swapping the text is
+   * not the kind of movement the setting is there to prevent; the *rolling*
+   * is, and that stays disabled below.
+   */
   useEffect(() => {
-    if (reducedMotion) return;
-    const timer = window.setInterval(() => {
-      setPhraseIndex((index) => (index + 1) % PHRASES.length);
-    }, HOLD_MS);
+    const timer = window.setInterval(
+      () => setPhraseIndex((index) => (index + 1) % PHRASES.length),
+      reducedMotion ? HOLD_MS_REDUCED : HOLD_MS
+    );
     return () => window.clearInterval(timer);
   }, [reducedMotion]);
 
