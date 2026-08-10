@@ -4,17 +4,36 @@ import { useCallback, useEffect, useState } from 'react';
 import { DEFAULT_FLAVOUR, STORAGE_KEYS, isFlavour, type CatppuccinFlavour } from '@sfaizh/shared';
 import { readLocal, writeLocal } from './storage';
 
-/** Matches a media query and stays in sync with it. */
+/**
+ * Matches a media query and stays in sync with it.
+ *
+ * The `change` event alone is not enough. Rendering starts with `false` for
+ * SSR, and the state can move without an event ever firing — a browser
+ * applying device characteristics slightly after first paint, a "request
+ * desktop site" toggle, device emulation. Missing that transition is not
+ * cosmetic here: it decides whether a phone gets the touch UI at all. So the
+ * value is also re-read on the next frame and whenever the viewport changes.
+ */
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
 
   useEffect(() => {
     const list = window.matchMedia(query);
-    setMatches(list.matches);
+    const sync = () => setMatches(list.matches);
 
-    const onChange = (event: MediaQueryListEvent) => setMatches(event.matches);
-    list.addEventListener('change', onChange);
-    return () => list.removeEventListener('change', onChange);
+    sync();
+    const frame = window.requestAnimationFrame(sync);
+
+    list.addEventListener('change', sync);
+    window.addEventListener('resize', sync);
+    window.addEventListener('orientationchange', sync);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      list.removeEventListener('change', sync);
+      window.removeEventListener('resize', sync);
+      window.removeEventListener('orientationchange', sync);
+    };
   }, [query]);
 
   return matches;

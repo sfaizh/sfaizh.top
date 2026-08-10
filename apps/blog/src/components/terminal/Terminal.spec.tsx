@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import { INTERRUPT, Terminal, type Entry } from './Terminal';
 import { makeState } from '../../lib/shell/test-state';
 import { seg } from '../../lib/shell/output';
@@ -145,11 +145,16 @@ describe('Terminal', () => {
     expect(input.value).toBe('some-slug');
   });
 
-  it('opens reverse history search with Ctrl-R', () => {
-    const { input } = setup({ history: ['open a-post'] });
-    fireEvent.keyDown(input, { key: 'r', ctrlKey: true });
+  it('leaves Ctrl-R to the browser so the page can reload', () => {
+    const { onRun, input } = setup({ history: ['open a-post'] });
 
-    expect(screen.getByText(/reverse-i-search/)).toBeTruthy();
+    const event = createEvent.keyDown(input, { key: 'r', ctrlKey: true });
+    fireEvent(input, event);
+
+    // Not intercepted: no command runs, and the default action stands.
+    expect(onRun).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    expect(screen.queryByText(/reverse-i-search/)).toBeNull();
   });
 
   it('runs a clicked output segment', () => {

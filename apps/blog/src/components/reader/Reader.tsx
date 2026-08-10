@@ -87,6 +87,28 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
     updatePercent();
   }, [post, updatePercent]);
 
+  /**
+   * Momentum scrolling on a phone fires scroll events far faster than the
+   * screen refreshes. Re-rendering the whole reader on each one is wasted work
+   * on exactly the device that can least afford it, so the percentage is
+   * recomputed at most once per frame.
+   */
+  const percentFrame = useRef(0);
+  const onScroll = useCallback(() => {
+    if (percentFrame.current) return;
+    percentFrame.current = window.requestAnimationFrame(() => {
+      percentFrame.current = 0;
+      updatePercent();
+    });
+  }, [updatePercent]);
+
+  useEffect(
+    () => () => {
+      if (percentFrame.current) window.cancelAnimationFrame(percentFrame.current);
+    },
+    []
+  );
+
   // ── scrolling primitives ──────────────────────────────────────────────────
   const scrollTo = useCallback(
     (top: number, smooth: boolean) => {
@@ -362,9 +384,9 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
         role="document"
         aria-label={post ? `${post.title} — reader` : 'Loading post'}
         onKeyDown={onKeyDown}
-        onScroll={updatePercent}
-        className="scroll-themed relative min-h-0 flex-1 overflow-y-auto outline-none"
-        style={{ scrollBehavior: reducedMotion ? 'auto' : undefined, WebkitOverflowScrolling: 'touch' }}
+        onScroll={onScroll}
+        className="focus-silent scroll-themed relative min-h-0 flex-1 overflow-y-auto outline-none"
+        style={{ scrollBehavior: reducedMotion ? 'auto' : undefined }}
       >
         {failure && (
           <div className="mx-auto max-w-prose px-6 py-10 text-[color:var(--ctp-red)]">

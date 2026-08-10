@@ -88,7 +88,6 @@ const help: Command = {
       ...table([
         [seg('  Tab', { colour: 'yellow' }), seg('accept the inline suggestion', { colour: 'subtext1' })],
         [seg('  ↑ ↓', { colour: 'yellow' }), seg('walk command history', { colour: 'subtext1' })],
-        [seg('  Ctrl-R', { colour: 'yellow' }), seg('search history', { colour: 'subtext1' })],
         [seg('  Ctrl-L', { colour: 'yellow' }), seg('clear the screen', { colour: 'subtext1' })],
         [seg('  Ctrl-A / Ctrl-E', { colour: 'yellow' }), seg('start / end of line', { colour: 'subtext1' })],
         [seg('  Ctrl-W / Ctrl-U', { colour: 'yellow' }), seg('kill word / line', { colour: 'subtext1' })],

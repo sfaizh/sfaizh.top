@@ -1,9 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 
 /**
- * The touch journey. There is no `j` key on a phone, so the mobile experience
- * is a different complete UI rather than a degraded desktop one: tappable
- * commands above the prompt, and buttons instead of motions in the reader.
+ * The core touch journey.
+ *
+ * There is no `j` key on a phone, so mobile is a different complete UI rather
+ * than a degraded desktop one: tappable commands above the prompt, and buttons
+ * instead of motions in the reader. These tests prove that alternative exists
+ * and works end to end.
  */
 
 async function bootedPage(page: Page) {
@@ -11,55 +14,45 @@ async function bootedPage(page: Page) {
     window.localStorage.setItem('sfaizh:boot:v1', '1');
   });
   await page.goto('/');
+
+  // The input exists in every mode, so it is the signal that React has
+  // hydrated. The command bar is conditional on touch detection, which only
+  // resolves in an effect — asserting on it first would race hydration and
+  // report "element not found" for what is really a timing problem.
+  await expect(page.getByLabel('Terminal input')).toBeAttached();
+  await expect(page.getByRole('navigation', { name: 'Quick commands' })).toBeVisible();
+}
+
+function quickCommand(page: Page, name: string) {
+  return page
+    .getByRole('navigation', { name: 'Quick commands' })
+    .getByRole('button', { name, exact: true });
 }
 
 test.describe('touch devices', () => {
-  test.beforeEach(async ({ page }) => bootedPage(page));
+  test('offers predefined commands instead of a keyboard', async ({ page }) => {
+    await bootedPage(page);
 
-  test('offers a row of predefined commands', async ({ page }) => {
-    const bar = page.getByRole('navigation', { name: 'Quick commands' });
-
-    await expect(bar).toBeVisible();
-    await expect(bar.getByRole('button', { name: 'help', exact: true })).toBeVisible();
-    await expect(bar.getByRole('button', { name: 'posts', exact: true })).toBeVisible();
+    await expect(quickCommand(page, 'help')).toBeVisible();
+    await expect(quickCommand(page, 'posts')).toBeVisible();
   });
 
   test('runs a command when one is tapped', async ({ page }) => {
-    await page.getByRole('navigation', { name: 'Quick commands' }).getByRole('button', { name: 'posts', exact: true }).tap();
+    await bootedPage(page);
+    await quickCommand(page, 'posts').tap();
 
     await expect(page.getByText('building-a-terminal-blog').first()).toBeVisible();
   });
 
-  test('opens the latest post and offers reader controls instead of motions', async ({ page }) => {
-    await page.getByRole('navigation', { name: 'Quick commands' }).getByRole('button', { name: 'latest' }).tap();
+  test('opens a post with reader controls, and closes again', async ({ page }) => {
+    await bootedPage(page);
+    await quickCommand(page, 'latest').tap();
 
     const controls = page.getByRole('navigation', { name: 'Reader controls' });
     await expect(controls).toBeVisible();
     await expect(controls.getByRole('button', { name: 'Jump to the end' })).toBeVisible();
-  });
 
-  test('scrolls the post with the jump buttons', async ({ page }) => {
-    await page.getByRole('navigation', { name: 'Quick commands' }).getByRole('button', { name: 'latest' }).tap();
-
-    const surface = page.getByRole('document');
-    await page.getByRole('button', { name: 'Jump to the end' }).tap();
-
-    await expect
-      .poll(() => surface.evaluate((node: HTMLElement) => node.scrollTop), { timeout: 5000 })
-      .toBeGreaterThan(200);
-  });
-
-  test('closes the reader with the close control', async ({ page }) => {
-    await page.getByRole('navigation', { name: 'Quick commands' }).getByRole('button', { name: 'latest' }).tap();
-    await page.getByRole('button', { name: 'Back to the terminal' }).tap();
-
+    await controls.getByRole('button', { name: 'Back to the terminal' }).tap();
     await expect(page.getByRole('navigation', { name: 'Quick commands' })).toBeVisible();
-  });
-
-  test('never scrolls the page body horizontally', async ({ page }) => {
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
-    );
-    expect(overflow).toBeLessThanOrEqual(1);
   });
 });

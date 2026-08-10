@@ -28,16 +28,12 @@ export function Terminal({ entries, state, busy, onRun, autoFocus = true }: Prop
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuIndex, setMenuIndex] = useState(0);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
-  const [search, setSearch] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const draftRef = useRef('');
 
-  const suggestion = useMemo(
-    () => (search === null ? inlineSuggestion(value, state) : null),
-    [value, state, search]
-  );
+  const suggestion = useMemo(() => inlineSuggestion(value, state), [value, state]);
   const completion = useMemo(() => complete(value, state), [value, state]);
 
   // Pin the scrollback to the bottom as output arrives.
@@ -65,7 +61,6 @@ export function Terminal({ entries, state, busy, onRun, autoFocus = true }: Prop
       setCaret(0);
       setMenuOpen(false);
       setHistoryIndex(null);
-      setSearch(null);
       draftRef.current = '';
       onRun(raw);
     },
@@ -80,44 +75,14 @@ export function Terminal({ entries, state, busy, onRun, autoFocus = true }: Prop
     return true;
   }, [suggestion]);
 
-  const historySearchHits = useMemo(() => {
-    if (search === null || search === '') return [];
-    return state.history.filter((entry) => entry.includes(search)).reverse();
-  }, [search, state.history]);
-
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       const input = event.currentTarget;
 
-      // ── reverse history search (Ctrl-R) ──────────────────────────────────
-      if (search !== null) {
-        if (event.key === 'Escape' || (event.ctrlKey && event.key.toLowerCase() === 'g')) {
-          event.preventDefault();
-          setSearch(null);
-          return;
-        }
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          const hit = historySearchHits[0];
-          setSearch(null);
-          if (hit) submit(hit);
-          return;
-        }
-        if (event.ctrlKey && event.key.toLowerCase() === 'r') {
-          event.preventDefault();
-          return;
-        }
-        return;
-      }
-
       if (event.ctrlKey || event.metaKey) {
         const key = event.key.toLowerCase();
 
-        if (key === 'r') {
-          event.preventDefault();
-          setSearch('');
-          return;
-        }
+        // Ctrl-R is deliberately left to the browser so the page reloads.
         if (key === 'l') {
           event.preventDefault();
           submit('clear');
@@ -280,11 +245,9 @@ export function Terminal({ entries, state, busy, onRun, autoFocus = true }: Prop
       caret,
       completion,
       historyIndex,
-      historySearchHits,
       menuIndex,
       menuOpen,
       onRun,
-      search,
       state.history,
       submit,
       suggestion,
@@ -329,49 +292,42 @@ export function Terminal({ entries, state, busy, onRun, autoFocus = true }: Prop
 
       {/* ── the live prompt ────────────────────────────────────────────── */}
       <div className="mt-2">
-        {search !== null ? (
-          <div className="flex flex-wrap items-baseline gap-x-2">
-            <span className="text-[color:var(--ctp-yellow)]">{`(reverse-i-search)\`${search}':`}</span>
-            <span className="text-[color:var(--ctp-text)]">{historySearchHits[0] ?? ''}</span>
-          </div>
-        ) : (
           <div className="flex flex-wrap items-center gap-x-2">
-            <Prompt cwd={state.cwd} exitCode={state.lastExit} />
+          <Prompt cwd={state.cwd} exitCode={state.lastExit} />
 
-            <div className="relative min-w-0 flex-1">
-              {/* The rendered line: real text, a block caret, then ghost text. */}
-              <div aria-hidden="true" className="pointer-events-none whitespace-pre-wrap break-words">
-                <span className="text-[color:var(--ctp-text)]">{value.slice(0, caret)}</span>
-                <span className="terminal-caret">{underCaret || ' '}</span>
-                <span className="text-[color:var(--ctp-text)]">{value.slice(caret + 1)}</span>
-                <span className="text-[color:var(--ctp-overlay0)]">{trailingGhost}</span>
-              </div>
-
-              <input
-                ref={inputRef}
-                value={value}
-                onChange={(event) => {
-                  setValue(event.target.value);
-                  setHistoryIndex(null);
-                  setCaret(event.target.selectionStart ?? event.target.value.length);
-                }}
-                onKeyDown={onKeyDown}
-                onKeyUp={syncCaret}
-                onClick={syncCaret}
-                onSelect={syncCaret}
-                onFocus={syncCaret}
-                className="absolute inset-0 h-full w-full bg-transparent text-transparent outline-none"
-                style={{ caretColor: 'transparent' }}
-                aria-label="Terminal input"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                enterKeyHint="go"
-              />
+          <div className="relative min-w-0 flex-1">
+            {/* The rendered line: real text, a block caret, then ghost text. */}
+            <div aria-hidden="true" className="pointer-events-none whitespace-pre-wrap break-words">
+              <span className="text-[color:var(--ctp-text)]">{value.slice(0, caret)}</span>
+              <span className="terminal-caret">{underCaret || ' '}</span>
+              <span className="text-[color:var(--ctp-text)]">{value.slice(caret + 1)}</span>
+              <span className="text-[color:var(--ctp-overlay0)]">{trailingGhost}</span>
             </div>
+
+            <input
+              ref={inputRef}
+              value={value}
+              onChange={(event) => {
+                setValue(event.target.value);
+                setHistoryIndex(null);
+                setCaret(event.target.selectionStart ?? event.target.value.length);
+              }}
+              onKeyDown={onKeyDown}
+              onKeyUp={syncCaret}
+              onClick={syncCaret}
+              onSelect={syncCaret}
+              onFocus={syncCaret}
+              className="focus-silent absolute inset-0 h-full w-full bg-transparent text-transparent outline-none"
+              style={{ caretColor: 'transparent' }}
+              aria-label="Terminal input"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              enterKeyHint="go"
+            />
           </div>
-        )}
+        </div>
 
         {menuOpen && completion.candidates.length > 1 && (
           <CompletionMenu candidates={completion.candidates} activeIndex={menuIndex} />
