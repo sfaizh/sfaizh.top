@@ -38,6 +38,8 @@ export function makeState(overrides: Partial<ShellState> = {}): ShellState {
     flavour: DEFAULT_FLAVOUR,
     stats: { posts: posts.length, drafts: 0, tags: 3, words: 2600, storage: 'filesystem' },
     lastExit: 0,
+    reducedMotion: false,
+    motion: 'auto' as const,
     ...overrides,
     // The filesystem must always match whichever post list won.
     ...(overrides.posts ? { fs: buildFilesystem(overrides.posts) } : {}),

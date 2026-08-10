@@ -63,6 +63,7 @@ export function AdminConsole() {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [uploadsEnabled, setUploadsEnabled] = useState<boolean | null>(null);
   const [restorable, setRestorable] = useState<{ savedAt: number; stale: boolean } | null>(null);
 
   const editorRef = useRef<TipTapEditor | null>(null);
@@ -81,8 +82,45 @@ export function AdminConsole() {
     void refresh();
   }, [refresh]);
 
+  // Ask once whether the blob store is configured, so the editor can say so
+  // before you pick a file rather than after it has compressed one.
+  useEffect(() => {
+    api
+      .uploadStatus()
+      .then((status) => setUploadsEnabled(status.enabled))
+      .catch(() => setUploadsEnabled(false));
+  }, []);
+
+  /**
+   * Write the draft now rather than on the debounce.
+   *
+   * Switching buffers used to drop up to 700ms of typing on the floor — the
+   * pending timer was simply replaced. Leaving a buffer flushes it first.
+   */
+  const flushDraft = useCallback(() => {
+    if (!selected || !dirty) return;
+    if (autosaveTimer.current !== null) window.clearTimeout(autosaveTimer.current);
+
+    const at = Date.now();
+    saveDraft({
+      slug: selected,
+      title: meta.title,
+      summary: meta.summary,
+      tags: splitTags(meta.tags),
+      date: meta.date,
+      draft: meta.draft,
+      cover: meta.cover || undefined,
+      html,
+      savedAt: at,
+      baseRevision,
+    });
+    setSavedAt(at);
+  }, [baseRevision, dirty, html, meta, selected]);
+
   // ── loading a post ────────────────────────────────────────────────────────
   const openPost = useCallback(async (slug: string) => {
+    // Never leave a buffer without persisting it first.
+    flushDraft();
     setNotice(null);
     setRestorable(null);
 
@@ -118,11 +156,37 @@ export function AdminConsole() {
       setDirty(false);
 
       const draft = loadDraft(slug);
-      if (draft) setRestorable({ savedAt: draft.savedAt, stale: draft.baseRevision !== revision });
+      if (!draft) return;
+
+      if (draft.baseRevision !== revision) {
+        // The server copy moved underneath the draft — that is a real conflict
+        // and wants a decision, so it still asks.
+        setRestorable({ savedAt: draft.savedAt, stale: true });
+        return;
+      }
+
+      // Otherwise put the work straight back. Switching between posts should
+      // not cost you anything you typed; only Discard should.
+      setMeta({
+        slug: draft.slug,
+        title: draft.title,
+        summary: draft.summary,
+        tags: draft.tags.join(', '),
+        date: draft.date,
+        draft: draft.draft,
+        cover: draft.cover ?? '',
+      });
+      setHtml(draft.html);
+      setSavedAt(draft.savedAt);
+      setDirty(true);
+      setNotice({
+        tone: 'warn',
+        message: `Restored unsaved changes from ${describeAge(draft.savedAt)}. Discard to go back to the saved version.`,
+      });
     } catch (cause) {
       setNotice({ tone: 'error', message: (cause as Error).message });
     }
-  }, []);
+  }, [flushDraft]);
 
   // ── autosave ──────────────────────────────────────────────────────────────
   const scheduleAutosave = useCallback(
@@ -210,6 +274,37 @@ export function AdminConsole() {
     setRestorable(null);
   }, [selected]);
 
+  /**
+   * Throw the local draft away and go back to what is stored.
+   *
+   * This is the only thing that should ever cost you work — switching posts
+   * now carries your changes with you, so there has to be a deliberate way
+   * out of them.
+   */
+  const discardChanges = useCallback(async () => {
+    if (!selected) return;
+    if (dirty && !window.confirm('Discard your unsaved changes to this post?')) return;
+
+    if (autosaveTimer.current !== null) window.clearTimeout(autosaveTimer.current);
+    clearDraft(selected);
+    setRestorable(null);
+    setSavedAt(null);
+
+    if (selected === NEW_POST) {
+      setMeta(EMPTY_META);
+      setHtml('');
+      setDirty(false);
+      setNotice({ tone: 'ok', message: 'Cleared.' });
+      return;
+    }
+
+    const slug = selected;
+    setSelected(null);
+    setDirty(false);
+    await openPost(slug);
+    setNotice({ tone: 'ok', message: 'Reverted to the saved version.' });
+  }, [dirty, openPost, selected]);
+
   // ── saving ────────────────────────────────────────────────────────────────
   const save = useCallback(async () => {
     if (!selected || saving) return;
@@ -290,6 +385,15 @@ export function AdminConsole() {
 
   // ── images ────────────────────────────────────────────────────────────────
   const uploadFiles = useCallback(async (files: File[]) => {
+    if (uploadsEnabled === false) {
+      setNotice({
+        tone: 'warn',
+        message:
+          'Image uploads are off because BLOB_READ_WRITE_TOKEN is not set. Attach a Blob store in Vercel (or set the token locally) and redeploy — everything else still works.',
+      });
+      return;
+    }
+
     for (const file of files) {
       setUploading(file.name);
       try {
@@ -318,6 +422,54 @@ export function AdminConsole() {
         setUploading(null);
       }
     }
+  }, [uploadsEnabled]);
+
+  /** Compress and upload one file, returning its URL — used by Replace. */
+  const uploadOne = useCallback(
+    async (file: File): Promise<string | null> => {
+      if (uploadsEnabled === false) {
+        setNotice({ tone: 'warn', message: 'Image uploads are off — BLOB_READ_WRITE_TOKEN is not set.' });
+        return null;
+      }
+      setUploading(file.name);
+      try {
+        const compressed = await compressImage(file);
+        const uploaded = await api.uploadImage({
+          blob: compressed.blob,
+          filename: compressed.filename,
+          originalSize: compressed.originalSize,
+          width: compressed.width,
+          height: compressed.height,
+        });
+        setNotice({
+          tone: 'ok',
+          message: `${file.name}: ${formatBytes(compressed.originalSize)} → ${formatBytes(uploaded.size)}`,
+        });
+        return uploaded.url;
+      } catch (cause) {
+        setNotice({ tone: 'error', message: `${file.name}: ${(cause as Error).message}` });
+        return null;
+      } finally {
+        setUploading(null);
+      }
+    },
+    [uploadsEnabled]
+  );
+
+  /**
+   * Bin an image that is no longer referenced.
+   *
+   * Best effort on purpose: the post has already been edited, and failing to
+   * tidy up storage should not look like the edit failed.
+   */
+  const forgetImage = useCallback((src: string) => {
+    if (!/blob\.vercel-storage\.com\//.test(src)) return;
+    api
+      .deleteImage(src)
+      .then(() => setNotice({ tone: 'ok', message: 'Image removed from storage.' }))
+      .catch((cause: Error) =>
+        setNotice({ tone: 'warn', message: `Removed from the post, but storage said: ${cause.message}` })
+      );
   }, []);
 
   const signOut = useCallback(() => {
@@ -374,6 +526,9 @@ export function AdminConsole() {
                   initialHtml={html}
                   onChange={onEditorChange}
                   onUploadFiles={uploadFiles}
+                  uploadsEnabled={uploadsEnabled}
+                  onReplaceImage={uploadOne}
+                  onRemoveImage={forgetImage}
                   onReady={(instance) => {
                     editorRef.current = instance;
                   }}
@@ -390,6 +545,15 @@ export function AdminConsole() {
                   {saving ? 'saving…' : 'Save  ⌘S'}
                 </button>
 
+                <button
+                  type="button"
+                  onClick={discardChanges}
+                  disabled={!dirty && savedAt === null}
+                  className="rounded border border-[color:var(--ctp-surface2)] px-4 py-2 font-mono text-[color:var(--ctp-subtext1)] disabled:opacity-40"
+                >
+                  Discard changes
+                </button>
+
                 {selected !== NEW_POST && (
                   <button
                     type="button"
@@ -401,7 +565,11 @@ export function AdminConsole() {
                 )}
 
                 <span className="font-mono text-[12.5px] text-[color:var(--ctp-overlay1)]">
-                  {uploading ? `uploading ${uploading}…` : 'paste or drop an image to upload it'}
+                  {uploading
+                    ? `uploading ${uploading}…`
+                    : uploadsEnabled === false
+                      ? 'image uploads disabled — BLOB_READ_WRITE_TOKEN is not set'
+                      : 'paste or drop an image to upload it'}
                 </span>
               </div>
             </div>

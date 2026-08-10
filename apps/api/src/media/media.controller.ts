@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Inject, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import type { UploadedMedia } from '@sfaizh/shared';
 import { AuthGuard } from '../auth/auth.guard';
@@ -17,6 +17,12 @@ export class MediaController {
   @Get()
   status(): { enabled: boolean } {
     return { enabled: this.media.enabled };
+  }
+
+  /** Remove an upload the editor no longer references. */
+  @Delete()
+  remove(@Query('url') url: string): Promise<{ removed: boolean }> {
+    return this.media.remove(url);
   }
 
   @Post()

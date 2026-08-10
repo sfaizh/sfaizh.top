@@ -20,6 +20,7 @@ export const API_ROUTES = {
 export const STORAGE_KEYS = {
   booted: 'sfaizh:boot:v1',
   flavour: 'sfaizh:flavour:v1',
+  motion: 'sfaizh:motion:v1',
   history: 'sfaizh:history:v1',
   token: 'sfaizh:admin-token:v1',
   draft: (slug: string) => `sfaizh:draft:v1:${slug}`,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { DEFAULT_FLAVOUR, STORAGE_KEYS, isFlavour, type CatppuccinFlavour } from '@sfaizh/shared';
 import { readLocal, writeLocal } from './storage';
 
@@ -39,13 +39,87 @@ export function useMediaQuery(query: string): boolean {
   return matches;
 }
 
+export type MotionPreference = 'auto' | 'full' | 'reduced';
+
+const MOTION_PREFERENCES: MotionPreference[] = ['auto', 'full', 'reduced'];
+
+/**
+ * One preference, shared by every component that animates.
+ *
+ * A plain `useState` per hook call would give each component its own copy, so
+ * changing it in the terminal would not reach the header until a reload — an
+ * external store keeps them in step. `useSyncExternalStore` also gives a
+ * stable server snapshot, so hydration does not flicker.
+ */
+let motionPreference: MotionPreference = 'auto';
+let motionHydrated = false;
+const motionListeners = new Set<() => void>();
+
+function emitMotionChange() {
+  for (const listener of motionListeners) listener();
+}
+
+function subscribeMotion(listener: () => void): () => void {
+  motionListeners.add(listener);
+  return () => motionListeners.delete(listener);
+}
+
+function hydrateMotion() {
+  if (motionHydrated || typeof window === 'undefined') return;
+  motionHydrated = true;
+
+  const stored = readLocal(STORAGE_KEYS.motion) as MotionPreference | null;
+  if (stored && MOTION_PREFERENCES.includes(stored) && stored !== motionPreference) {
+    motionPreference = stored;
+    emitMotionChange();
+  }
+}
+
+/**
+ * Whether to animate, and why.
+ *
+ * `auto` follows the operating system, which is the right default. It is not
+ * always the right *answer*, though: iOS reports `prefers-reduced-motion` while
+ * Low Power Mode is on, so a phone conserving battery is indistinguishable from
+ * a reader who asked for stillness. Rather than guess, the choice is surfaced
+ * as a command (`motion full`) and remembered — an explicit user control, which
+ * is what the accessibility guidance asks for anyway.
+ */
+export function useMotion(): {
+  reduced: boolean;
+  preference: MotionPreference;
+  setPreference: (next: MotionPreference) => void;
+} {
+  const system = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const preference = useSyncExternalStore(
+    subscribeMotion,
+    () => motionPreference,
+    () => 'auto' as MotionPreference
+  );
+
+  useEffect(hydrateMotion, []);
+
+  const setPreference = useCallback((next: MotionPreference) => {
+    motionPreference = next;
+    writeLocal(STORAGE_KEYS.motion, next);
+    emitMotionChange();
+  }, []);
+
+  const reduced = preference === 'auto' ? system : preference === 'reduced';
+  return { reduced, preference, setPreference };
+}
+
 /** True on touch-first devices, where the keyboard grammar does not apply. */
 export function useIsTouch(): boolean {
   return useMediaQuery('(hover: none) and (pointer: coarse)');
 }
 
+/**
+ * The effective answer for "should this animate?" — the device preference,
+ * unless the reader has overridden it with the `motion` command.
+ */
 export function usePrefersReducedMotion(): boolean {
-  return useMediaQuery('(prefers-reduced-motion: reduce)');
+  return useMotion().reduced;
 }
 
 /**

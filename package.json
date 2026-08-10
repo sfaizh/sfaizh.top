@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "content:build": "node tools/scripts/generate-content.mjs",
+    "posts:from-json": "node -r ts-node/register/transpile-only -r tsconfig-paths/register tools/scripts/convert-json-posts.ts",
     "favicon:build": "node tools/scripts/generate-favicon.mjs",
     "predev": "npm run content:build",
     "dev": "nx dev @sfaizh.top/blog",

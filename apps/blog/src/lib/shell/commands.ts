@@ -404,6 +404,7 @@ const neofetch: Command = {
       ['os', 'Next.js 16 · NestJS 11'],
       ['shell', 'sfsh 1.0 (zsh-flavoured)'],
       ['theme', `catppuccin-${state.flavour}`],
+      ['motion', `${state.reducedMotion ? 'reduced' : 'full'} (${state.motion})`],
       ['font', 'nerd font, if you have one'],
       ['posts', String(state.stats?.posts ?? state.posts.length)],
       ['words', (state.stats?.words ?? 0).toLocaleString('en-GB')],
@@ -462,6 +463,48 @@ const theme: Command = {
     return success(
       [line(seg('theme → ', { colour: 'overlay1' }), seg(`catppuccin-${requested}`, { colour: 'mauve', bold: true }))],
       [{ type: 'flavour', flavour: requested }]
+    );
+  },
+};
+
+const motion: Command = {
+  name: 'motion',
+  aliases: ['animations'],
+  summary: 'turn animations on or off',
+  usage: 'motion [auto|full|reduced]',
+  group: 'appearance',
+  completions: () => ['auto', 'full', 'reduced'],
+  run({ args, state }) {
+    const requested = args[0]?.toLowerCase();
+
+    if (!requested) {
+      return success([
+        line(
+          seg('animations: ', { colour: 'overlay1' }),
+          seg(state.reducedMotion ? 'off' : 'on', { colour: state.reducedMotion ? 'peach' : 'green', bold: true }),
+          seg(`  (${state.motion})`, { colour: 'overlay0' })
+        ),
+        blank(),
+        ...paragraph(
+          'auto follows your device. Note that iOS reports "reduce motion" whenever Low Power Mode is on, so a phone saving battery looks the same as a reader who asked for stillness — set it by hand if that is not what you meant.',
+          'subtext0',
+          78
+        ),
+        blank(),
+        ...(['auto', 'full', 'reduced'] as const).map((option) => [
+          seg(option === state.motion ? '  ● ' : '  ○ ', { colour: 'green' }),
+          seg(option, { colour: 'yellow', command: `motion ${option}` }),
+        ]),
+      ]);
+    }
+
+    if (requested !== 'auto' && requested !== 'full' && requested !== 'reduced') {
+      return failure(error(`motion: expected auto, full or reduced (got '${requested}')`), 1);
+    }
+
+    return success(
+      [line(seg('motion → ', { colour: 'overlay1' }), seg(requested, { colour: 'mauve', bold: true }))],
+      [{ type: 'motion', preference: requested }]
     );
   },
 };
@@ -595,6 +638,7 @@ export const COMMANDS: Command[] = [
   whoami,
   about,
   theme,
+  motion,
   banner,
   neofetch,
   history,

@@ -100,6 +100,7 @@ no third party consuming them.
 | `tags` | Tags and how often they appear |
 | `whoami`, `about`, `neofetch` | Who and what this is |
 | `theme [mocha\|macchiato\|frappe\|latte]` | Catppuccin flavour, remembered |
+| `motion [auto\|full\|reduced]` | Animations. `auto` follows your device |
 | `clear`, `history`, `date`, `banner`, `reboot` | Housekeeping |
 | `sudo -i` | The admin console |
 
@@ -155,7 +156,15 @@ close) instead of motions.
 
 ### Accessibility
 
-`prefers-reduced-motion` skips the boot sequence and stops every animation. The
+`prefers-reduced-motion` skips the boot sequence and stops every animation —
+including the split-flap's roll, though the header still alternates between its
+two phrases so the second one is never simply invisible.
+
+That signal is not always what it appears to be: **iOS reports
+`prefers-reduced-motion` whenever Low Power Mode is on**, so a phone saving
+battery looks identical to a reader who asked for stillness. Rather than guess,
+`motion full` overrides it and is remembered; `motion auto` hands the decision
+back to the device. `neofetch` reports which is in force. The
 reader renders a real semantic document — `<article>`, real headings, real
 landmarks — with the motion layer attached to a focusable container that `Esc`
 always escapes. There is a skip link to the terminal, and the split-flap header

@@ -116,6 +116,11 @@ export const api = {
 
   uploadStatus: () => request<{ enabled: boolean }>(API_ROUTES.adminUpload),
 
+  deleteImage: (url: string) =>
+    request<{ removed: boolean }>(`${API_ROUTES.adminUpload}?url=${encodeURIComponent(url)}`, {
+      method: 'DELETE',
+    }),
+
   /** Raw-body upload; the blob has already been compressed in the browser. */
   uploadImage: (params: {
     blob: Blob;

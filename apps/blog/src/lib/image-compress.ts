@@ -45,22 +45,29 @@ export async function compressImage(
     throw new Error('SVG uploads are not supported — export a raster image instead');
   }
 
-  const bitmap = await decode(file);
-  const scale = Math.min(1, settings.maxEdge / Math.max(bitmap.width, bitmap.height));
-  const width = Math.max(1, Math.round(bitmap.width * scale));
-  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const { source, release } = await decode(file);
+  const scale = Math.min(1, settings.maxEdge / Math.max(source.width, source.height));
+  const width = Math.max(1, Math.round(source.width * scale));
+  const height = Math.max(1, Math.round(source.height * scale));
 
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
 
   const context = canvas.getContext('2d');
-  if (!context) throw new Error('Canvas is unavailable — cannot compress the image');
+  if (!context) {
+    release();
+    throw new Error('Canvas is unavailable — cannot compress the image');
+  }
 
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
-  context.drawImage(bitmap, 0, 0, width, height);
-  if ('close' in bitmap) bitmap.close();
+  try {
+    context.drawImage(source, 0, 0, width, height);
+  } finally {
+    // Only once the pixels are on the canvas.
+    release();
+  }
 
   let blob = await toBlob(canvas, settings.mimeType, settings.quality);
   // Safari used to silently hand back a PNG when asked for WebP.
@@ -79,27 +86,70 @@ export async function compressImage(
   };
 }
 
-async function decode(file: File): Promise<ImageBitmap | HTMLImageElement> {
+/**
+ * Decode a file into something drawable.
+ *
+ * Three routes, because any one of them can fail on a file that is perfectly
+ * fine: `createImageBitmap` is fastest but refuses some sources, an object URL
+ * can be blocked by policy, and a data URL always works but costs memory. The
+ * caller must call `release()` once it has finished drawing — revoking the URL
+ * earlier can invalidate the image mid-draw.
+ */
+async function decode(file: File): Promise<{
+  source: CanvasImageSource & { width: number; height: number };
+  release: () => void;
+}> {
+  const failures: string[] = [];
+
   if (typeof createImageBitmap === 'function') {
     try {
-      return await createImageBitmap(file);
-    } catch {
-      /* fall through to the <img> path */
+      const bitmap = await createImageBitmap(file);
+      return { source: bitmap, release: () => bitmap.close() };
+    } catch (cause) {
+      failures.push(`createImageBitmap: ${(cause as Error).message || cause}`);
     }
   }
 
-  const url = URL.createObjectURL(file);
   try {
-    return await new Promise<HTMLImageElement>((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error('Could not decode the image'));
-      image.src = url;
-    });
-  } finally {
-    // Revoking immediately is safe: decoding has already finished or failed.
-    URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(file);
+    const image = await loadImage(url);
+    return { source: image, release: () => URL.revokeObjectURL(url) };
+  } catch (cause) {
+    failures.push(`object URL: ${(cause as Error).message || cause}`);
   }
+
+  try {
+    const image = await loadImage(await readAsDataUrl(file));
+    return { source: image, release: () => undefined };
+  } catch (cause) {
+    failures.push(`data URL: ${(cause as Error).message || cause}`);
+  }
+
+  // Say *why*, so the next report is actionable rather than a shrug. A file
+  // dragged from another tab or a cloud folder often arrives as a reference
+  // the page is not allowed to read.
+  throw new Error(
+    `Could not decode ${file.name || 'the image'} (${file.type || 'unknown type'}, ${formatBytes(file.size)}). ` +
+      `It may be a link rather than a real file — try saving it locally first. [${failures.join('; ')}]`
+  );
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('the browser could not read it'));
+    image.src = src;
+  });
+}
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('the file could not be read'));
+    reader.readAsDataURL(file);
+  });
 }
 
 function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {

@@ -1,5 +1,5 @@
 import { Inject, Injectable, ServiceUnavailableException, BadRequestException } from '@nestjs/common';
-import { put } from '@vercel/blob';
+import { del, put } from '@vercel/blob';
 import { assertUploadable, slugify, ValidationError, type UploadedMedia } from '@sfaizh/shared';
 import { API_CONFIG, type ApiConfig } from '../config/config';
 
@@ -56,6 +56,25 @@ export class MediaService {
       width: params.width,
       height: params.height,
     };
+  }
+
+  /**
+   * Delete an upload from the blob store.
+   *
+   * Only URLs that belong to this store are accepted: the editor sends back
+   * whatever `src` an image node happens to carry, and that could be any
+   * address on the web by the time a post has been edited a few times.
+   */
+  async remove(url: string): Promise<{ removed: boolean }> {
+    if (!this.config.blob) {
+      throw new ServiceUnavailableException('Image storage is not configured.');
+    }
+    if (!/^https:\/\/[^/]*\.public\.blob\.vercel-storage\.com\//.test(url ?? '')) {
+      throw new BadRequestException('Only images stored in this blob store can be deleted');
+    }
+
+    await del(url, { token: this.config.blob.token });
+    return { removed: true };
   }
 
   /** `blog/2026/06/my-diagram.webp` — sortable, readable, collision-resistant. */

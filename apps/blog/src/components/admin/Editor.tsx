@@ -19,15 +19,33 @@ interface Props {
   onChange: (html: string) => void;
   onUploadFiles: (files: File[]) => void;
   onReady?: (editor: TipTapEditor) => void;
+  /** Null while unknown; false disables the image button with a reason. */
+  uploadsEnabled?: boolean | null;
+  /** Replace the selected image; the caller uploads and returns the new URL. */
+  onReplaceImage?: (file: File) => Promise<string | null>;
+  /** Called with the removed image's URL so the caller can bin it from storage. */
+  onRemoveImage?: (src: string) => void;
 }
 
-export function Editor({ initialHtml, onChange, onUploadFiles, onReady }: Props) {
+export function Editor({
+  initialHtml,
+  onChange,
+  onUploadFiles,
+  onReady,
+  uploadsEnabled,
+  onReplaceImage,
+  onRemoveImage,
+}: Props) {
   const uploadRef = useRef(onUploadFiles);
   uploadRef.current = onUploadFiles;
 
   const editor = useEditor({
     // Rendering on the server would produce markup React then disagrees with.
     immediatelyRender: false,
+    // Without this the toolbar never learns what is selected: TipTap v3 skips
+    // re-rendering on transactions by default, so active states — and the
+    // image controls below — would be frozen.
+    shouldRerenderOnTransaction: true,
     extensions: [
       StarterKit.configure({
         link: { openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer' } },
@@ -79,10 +97,100 @@ export function Editor({ initialHtml, onChange, onUploadFiles, onReady }: Props)
 
   return (
     <div className="editor-surface">
-      <Toolbar editor={editor} onUploadFiles={onUploadFiles} />
+      <Toolbar editor={editor} onUploadFiles={onUploadFiles} uploadsEnabled={uploadsEnabled} />
+
+      {editor.isActive('image') && (
+        <SelectedImageBar
+          editor={editor}
+          onReplaceImage={onReplaceImage}
+          onRemoveImage={onRemoveImage}
+        />
+      )}
       <div className="scroll-themed max-h-[calc(100dvh-19rem)] overflow-y-auto px-5 py-4">
         <EditorContent editor={editor} />
       </div>
+    </div>
+  );
+}
+
+/**
+ * Controls for the image you just clicked.
+ *
+ * A selected image node has no affordances of its own — you could neither swap
+ * it nor get rid of it without editing the markdown by hand. This appears only
+ * while one is selected, so it costs nothing the rest of the time.
+ */
+function SelectedImageBar({
+  editor,
+  onReplaceImage,
+  onRemoveImage,
+}: {
+  editor: TipTapEditor;
+  onReplaceImage?: (file: File) => Promise<string | null>;
+  onRemoveImage?: (src: string) => void;
+}) {
+  const replaceRef = useRef<HTMLInputElement>(null);
+  const attributes = editor.getAttributes('image') as { src?: string; alt?: string };
+  const src = attributes.src ?? '';
+
+  const setAlt = useCallback(() => {
+    const next = window.prompt('Describe this image (alt text)', attributes.alt ?? '');
+    if (next === null) return;
+    editor.chain().focus().updateAttributes('image', { alt: next }).run();
+  }, [attributes.alt, editor]);
+
+  const remove = useCallback(() => {
+    editor.chain().focus().deleteSelection().run();
+    if (src) onRemoveImage?.(src);
+  }, [editor, onRemoveImage, src]);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--ctp-surface0)] bg-[color:var(--ctp-surface0)] px-3 py-2 font-mono text-[12.5px]">
+      <span className="text-[color:var(--ctp-mauve)]">image selected</span>
+      <span className="max-w-[38ch] truncate text-[color:var(--ctp-overlay1)]" title={src}>
+        {src.split('/').pop()}
+      </span>
+
+      <button
+        type="button"
+        onClick={() => replaceRef.current?.click()}
+        className="rounded bg-[color:var(--ctp-surface2)] px-2 py-1 text-[color:var(--ctp-text)]"
+      >
+        Replace
+      </button>
+      <button
+        type="button"
+        onClick={setAlt}
+        className="rounded bg-[color:var(--ctp-surface2)] px-2 py-1 text-[color:var(--ctp-text)]"
+      >
+        Alt text
+      </button>
+      <button
+        type="button"
+        onClick={remove}
+        className="rounded border border-[color:var(--ctp-red)] px-2 py-1 text-[color:var(--ctp-red)]"
+      >
+        Remove
+      </button>
+
+      <input
+        ref={replaceRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={async (event) => {
+          const file = event.target.files?.[0];
+          event.target.value = '';
+          if (!file || !onReplaceImage) return;
+
+          const uploaded = await onReplaceImage(file);
+          if (!uploaded) return;
+
+          editor.chain().focus().updateAttributes('image', { src: uploaded }).run();
+          // The old file is now unreferenced, so let the caller bin it.
+          if (src && src !== uploaded) onRemoveImage?.(src);
+        }}
+      />
     </div>
   );
 }
@@ -95,9 +203,11 @@ function imageFilesFrom(source: DataTransfer | null): File[] {
 function Toolbar({
   editor,
   onUploadFiles,
+  uploadsEnabled,
 }: {
   editor: TipTapEditor;
   onUploadFiles: (files: File[]) => void;
+  uploadsEnabled?: boolean | null;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -124,7 +234,11 @@ function Toolbar({
     { label: '1.', title: 'Numbered list', active: editor.isActive('orderedList'), run: () => editor.chain().focus().toggleOrderedList().run() },
     { label: '—', title: 'Horizontal rule', run: () => editor.chain().focus().setHorizontalRule().run() },
     { label: '🔗', title: 'Link', active: editor.isActive('link'), run: setLink },
-    { label: '🖼', title: 'Upload an image', run: () => fileRef.current?.click() },
+    {
+      label: '🖼',
+      title: uploadsEnabled === false ? 'Image uploads disabled (no BLOB_READ_WRITE_TOKEN)' : 'Upload an image',
+      run: () => fileRef.current?.click(),
+    },
   ];
 
   return (

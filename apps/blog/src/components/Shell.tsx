@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { STORAGE_KEYS, type PostMeta, type SiteStats } from '@sfaizh/shared';
 import { api } from '../lib/api-client';
-import { useClock, useFlavour, useIsTouch, usePrefersReducedMotion } from '../lib/hooks';
+import { useClock, useFlavour, useIsTouch, useMotion } from '../lib/hooks';
 import { readJson, readLocal, writeJson, writeLocal } from '../lib/storage';
 import { ADMIN_COMMAND, bannerLines } from '../lib/shell/commands';
 import { runCommand } from '../lib/shell/engine';
@@ -41,7 +41,7 @@ const SHELL_KEYS = [
 export function Shell() {
   const router = useRouter();
   const isTouch = useIsTouch();
-  const reducedMotion = usePrefersReducedMotion();
+  const { reduced: reducedMotion, preference: motion, setPreference: setMotion } = useMotion();
   const clock = useClock();
   const [flavour, setFlavour] = useFlavour();
 
@@ -85,8 +85,8 @@ export function Shell() {
   const fs = useMemo(() => buildFilesystem(posts), [posts]);
 
   const state: ShellState = useMemo(
-    () => ({ cwd, posts, fs, history, flavour, stats, lastExit }),
-    [cwd, posts, fs, history, flavour, stats, lastExit]
+    () => ({ cwd, posts, fs, history, flavour, stats, lastExit, reducedMotion, motion }),
+    [cwd, posts, fs, history, flavour, stats, lastExit, reducedMotion, motion]
   );
 
   const push = useCallback((lines: Line[]) => {
@@ -131,6 +131,9 @@ export function Shell() {
           case 'flavour':
             setFlavour(effect.flavour);
             break;
+          case 'motion':
+            setMotion(effect.preference);
+            break;
           case 'open':
             setReaderSlug(effect.slug);
             setMode('reader');
@@ -148,7 +151,7 @@ export function Shell() {
         }
       }
     },
-    [router, setFlavour]
+    [router, setFlavour, setMotion]
   );
 
   // ── the run loop ──────────────────────────────────────────────────────────

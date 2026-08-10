@@ -1,4 +1,5 @@
 import type { CatppuccinFlavour, PostMeta, SiteStats } from '@sfaizh/shared';
+import type { MotionPreference } from '../hooks';
 import type { Line } from './output';
 import type { Filesystem } from './vfs';
 
@@ -7,6 +8,7 @@ export type Effect =
   | { type: 'clear' }
   | { type: 'open'; slug: string }
   | { type: 'flavour'; flavour: CatppuccinFlavour }
+  | { type: 'motion'; preference: MotionPreference }
   | { type: 'navigate'; href: string }
   | { type: 'cd'; path: string }
   | { type: 'reboot' }
@@ -21,6 +23,10 @@ export interface ShellState {
   stats: SiteStats | null;
   /** Exit code of the previous command — the prompt turns red when non-zero. */
   lastExit: number;
+  /** Whether animations are currently suppressed. */
+  reducedMotion: boolean;
+  /** How that was decided: following the device, or set by hand. */
+  motion: MotionPreference;
 }
 
 export interface CommandContext {
