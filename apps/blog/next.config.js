@@ -1,13 +1,19 @@
 //@ts-check
 
-const { composePlugins, withNx } = require('@nx/next');
 const { join } = require('path');
 
 /**
- * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
+ * A plain Next.js config, deliberately free of `@nx/next`'s `withNx` wrapper.
+ *
+ * `withNx` only earns its place when you use Nx's SVGR handling, file
+ * replacements or its own output paths — none of which this app does. Keeping
+ * it meant `next.config.js` required a devDependency at build time, which is
+ * exactly the kind of coupling that breaks a deployment where devDependencies
+ * are pruned. Nx still infers its targets from the presence of this file.
+ *
+ * @type {import('next').NextConfig}
  **/
 const nextConfig = {
-  nx: {},
   reactStrictMode: true,
 
   // The Nest app is imported from `apps/api/src`, which lives outside this
@@ -35,6 +41,4 @@ const nextConfig = {
   },
 };
 
-const plugins = [withNx];
-
-module.exports = composePlugins(...plugins)(nextConfig);
+module.exports = nextConfig;
