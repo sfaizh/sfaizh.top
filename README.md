@@ -277,30 +277,38 @@ Everything is optional; each variable switches on one more capability. See
 The build command is `npm run build`, which regenerates the content bundle and
 then builds the Next app. Both halves of the site deploy as one project.
 
-### Two things that exist because of how Vercel builds
+### Why `apps/blog/package.json` looks the way it does
 
-Vercel runs the build **from inside `apps/blog`**, not from the repository
-root, and it does not reliably install root `devDependencies`. Two consequences
-are baked into the configuration, and both will look odd until you know why:
+**Vercel installs only the `apps/blog` workspace.** It detects the Next.js app
+inside the monorepo, runs the build from that directory, and never reads the
+root manifest — not its `dependencies`, not its `devDependencies`. A root
+install here is ~1,500 packages; Vercel's is ~350.
 
-- **`apps/blog/package.json` declares its own build toolchain** — `tailwindcss`,
-  `postcss`, `autoprefixer` and `typescript` sit in its `dependencies`, not in
-  the root's `devDependencies`. They are genuinely what this app needs in order
-  to build, and putting them here means the build works whether the install is
-  workspace-scoped or root-wide, pruned or not. npm workspaces hoists a single
-  copy, so nothing is duplicated on disk.
-- **`next build` does not type-check.** `typescript.ignoreBuildErrors` is on in
-  `next.config.js`. CI runs `npm run typecheck` over both projects on every push
-  and pull request; doing it a second time inside the deploy would drag every
-  dev-only `@types` package (`express`, `pako`, `turndown`, `jest`) into the
-  production dependency graph to satisfy a duplicate check. The trade is real:
-  a type error pushed straight to `main` can deploy before CI goes red. Watch
-  the CI badge, or set `ignoreBuildErrors: false` and promote those `@types`
-  packages if you would rather the deploy be the gate.
+So `apps/blog/package.json` is the manifest for the deployable unit and has to
+be complete. That is why it lists things the app never imports directly —
+`@nestjs/common`, `express`, `pako`, `marked` — they arrive transitively
+through the mounted API and the shared library, and Vercel has to be told about
+them. The root keeps development tooling only (Nx, Jest, ESLint, Playwright,
+ts-node). npm workspaces hoists everything into the root `node_modules`, so
+`nx serve api`, the test suites and the type checker all still resolve normally
+and nothing is duplicated on disk.
 
-`next.config.js` is also deliberately free of `@nx/next`'s `withNx` wrapper,
-for the same reason: it made the config file require a devDependency at build
-time. Nx still infers its targets from the file's presence.
+Two smaller consequences of the same constraint:
+
+- **`next build` does not type-check.** `typescript.ignoreBuildErrors` is on.
+  CI runs `npm run typecheck` over both projects on every push and pull
+  request; doing it again inside the deploy would drag every dev-only `@types`
+  package (`express`, `pako`, `turndown`, `jest`) into the deployed manifest to
+  satisfy a duplicate check. The trade is real: a type error pushed straight to
+  `main` can deploy before CI goes red. Set `ignoreBuildErrors: false` and add
+  those `@types` packages here if you would rather the deploy be the gate.
+- **`next.config.js` does not use `@nx/next`'s `withNx`.** It made the config
+  file require a build-time devDependency for features this app does not use.
+  Nx still infers its targets from the file's presence.
+
+If you add a runtime dependency, it belongs in `apps/blog/package.json`, even
+if only `apps/api` or `libs/shared` imports it. A test-only or build-tool
+dependency belongs at the root.
 
 ---
 
