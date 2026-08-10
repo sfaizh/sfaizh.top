@@ -2,6 +2,12 @@
   "name": "@sfaizh.top/blog",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "prebuild": "node ../../tools/scripts/generate-content.mjs",
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start"
+  },
   "dependencies": {
     "next": "~16.0.1",
     "react": "^19.0.0",
