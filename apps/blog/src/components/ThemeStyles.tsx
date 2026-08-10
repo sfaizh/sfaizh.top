@@ -6,6 +6,23 @@ import { CATPPUCCIN_FLAVOURS, DEFAULT_FLAVOUR, paletteToCssVariables } from '@sf
  * them into the stylesheet keeps one source of truth, and means switching
  * flavour is a single attribute write with no re-render and no flash.
  */
+/**
+ * `::highlight()` is injected rather than written into `global.css`: Turbopack's
+ * CSS parser does not yet recognise the pseudo-element and fails the build on
+ * it. The rules still resolve against the palette variables below.
+ */
+const HIGHLIGHT_RULES = `
+::highlight(reader-hit) {
+  background-color: color-mix(in srgb, var(--ctp-yellow) 45%, transparent);
+  color: var(--ctp-text);
+}
+
+::highlight(reader-hit-active) {
+  background-color: var(--ctp-yellow);
+  color: var(--ctp-crust);
+}
+`;
+
 export function ThemeStyles() {
   const blocks = [
     `:root, [data-flavour='${DEFAULT_FLAVOUR}'] {\n${paletteToCssVariables(DEFAULT_FLAVOUR)}\n}`,
@@ -14,7 +31,12 @@ export function ThemeStyles() {
     ),
   ];
 
-  return <style id="catppuccin-palette" dangerouslySetInnerHTML={{ __html: blocks.join('\n\n') }} />;
+  return (
+    <style
+      id="catppuccin-palette"
+      dangerouslySetInnerHTML={{ __html: `${blocks.join('\n\n')}\n${HIGHLIGHT_RULES}` }}
+    />
+  );
 }
 
 /**

@@ -463,15 +463,10 @@ body {
   text-align: center;
 }
 
-/* Search hits inside the reader, painted by the `/` motion. */
-.reader-hit {
-  background: color-mix(in srgb, var(--ctp-yellow) 34%, transparent);
-  border-radius: 2px;
-}
-.reader-hit-active {
-  background: var(--ctp-yellow);
-  color: var(--ctp-crust);
-}
+/* Search hits are painted with the CSS Custom Highlight API. Their
+   `::highlight()` rules live in components/ThemeStyles.tsx, injected at
+   runtime, because Turbopack's CSS parser rejects the pseudo-element at build
+   time. */
 
 /* ───────────────────────────────────────────────────────────────────────────
    Admin / editor

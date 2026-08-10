@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RenderedPost } from '@sfaizh/shared';
 import { api } from '../../lib/api-client';
 import { usePrefersReducedMotion } from '../../lib/hooks';
-import { applyHighlights, clearHighlights, setActiveHighlight } from '../../lib/reader/highlight-dom';
+import { clearMatches, findMatches, paintMatches, rangeOffsetTop } from '../../lib/reader/highlight-dom';
 import {
   EMPTY_PENDING,
   READER_KEYS,
@@ -14,7 +14,16 @@ import {
   resolveScroll,
   type PendingState,
 } from '../../lib/reader/motions';
+import {
+  clampIndex,
+  collectLineRects,
+  cursorBlock,
+  nearestLineIndex,
+  scrollToReveal,
+  type LineRect,
+} from '../../lib/reader/cursor';
 import { KeyLegend, StatusLine } from '../StatusLine';
+import { SmearCursor } from './SmearCursor';
 import { ReaderMobileBar } from '../terminal/MobileBar';
 
 /**
@@ -47,9 +56,13 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
   const [percent, setPercent] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
 
+  const [lines, setLines] = useState<LineRect[]>([]);
+  const [cursorIndex, setCursorIndex] = useState(0);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const articleRef = useRef<HTMLElement>(null);
-  const marksRef = useRef<HTMLElement[]>([]);
+  const matchesRef = useRef<Range[]>([]);
+  const linesRef = useRef<LineRect[]>([]);
 
   // ── load ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -129,6 +142,71 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
     return Number.isFinite(computed) && computed > 0 ? computed : 28;
   }, []);
 
+  /**
+   * The cursor indexes into the article's line boxes, so they have to be
+   * re-measured whenever the text could have reflowed: a new post, a resize, a
+   * late-loading font or image.
+   */
+  const measureLines = useCallback(() => {
+    const article = articleRef.current;
+    const container = scrollRef.current;
+    if (!article || !container) return;
+
+    const measured = collectLineRects(article, container);
+    linesRef.current = measured;
+    setLines(measured);
+    setCursorIndex((index) => clampIndex(index, measured.length));
+  }, []);
+
+  useEffect(() => {
+    if (!post) return;
+
+    measureLines();
+    const container = scrollRef.current;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => measureLines());
+    observer.observe(container);
+    if (articleRef.current) observer.observe(articleRef.current);
+
+    return () => observer.disconnect();
+  }, [post, measureLines]);
+
+  /** Put the cursor on a line and scroll only as far as needed to see it. */
+  const moveCursorTo = useCallback(
+    (index: number, smooth: boolean) => {
+      const container = scrollRef.current;
+      if (!container || lines.length === 0) return;
+
+      const next = clampIndex(index, lines.length);
+      setCursorIndex(next);
+
+      const target = scrollToReveal(lines[next], {
+        scrollTop: container.scrollTop,
+        clientHeight: container.clientHeight,
+      });
+      if (Math.abs(target - container.scrollTop) > 1) scrollTo(target, smooth);
+    },
+    [lines, scrollTo]
+  );
+
+
+  /** Put the cursor on the line holding a search match, and show it. */
+  const revealMatch = useCallback(
+    (range: Range) => {
+      const container = scrollRef.current;
+      if (!container) return;
+
+      const top = rangeOffsetTop(range, container);
+      if (lines.length === 0) {
+        scrollTo(top - container.clientHeight / 3, true);
+        return;
+      }
+      moveCursorTo(nearestLineIndex(lines, top), true);
+    },
+    [lines, moveCursorTo, scrollTo]
+  );
+
   /** Scroll so that the nth element matching `selector` sits near the top. */
   const jumpToElement = useCallback(
     (selector: string, direction: 1 | -1, count: number) => {
@@ -153,6 +231,9 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
       }
 
       scrollTo(offsets[index] - 12, true);
+      setCursorIndex((current) =>
+        linesRef.current.length ? nearestLineIndex(linesRef.current, offsets[index] + 8) : current
+      );
     },
     [scrollTo]
   );
@@ -163,40 +244,68 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
       const article = articleRef.current;
       if (!article) return;
 
-      const marks = applyHighlights(article, needle);
-      marksRef.current = marks;
-      setMatchCount(marks.length);
+      const matches = findMatches(article, needle);
+      matchesRef.current = matches;
+      setMatchCount(matches.length);
       setMatchIndex(0);
+      paintMatches(matches, 0);
 
-      if (marks.length) {
-        setActiveHighlight(marks, 0);
-        const node = scrollRef.current;
-        if (node) scrollTo(marks[0].offsetTop - node.clientHeight / 3, true);
-      }
+      if (matches.length) revealMatch(matches[0]);
     },
-    [scrollTo]
+    [revealMatch]
   );
+
+  /**
+   * Re-derive and re-paint the highlights after every commit.
+   *
+   * React owns the article's markup — it is rendered through
+   * `dangerouslySetInnerHTML` — and re-setting that HTML replaces the text
+   * nodes underneath us. A `Range` whose boundary node is removed does not
+   * throw: per the DOM spec its boundary moves to the parent and the range
+   * collapses, so held ranges quietly become empty and nothing paints. Ranges
+   * are therefore treated as disposable and rebuilt from whatever is currently
+   * in the document.
+   */
+  useEffect(() => {
+    const article = articleRef.current;
+    if (!article) return;
+
+    if (!committedQuery) {
+      clearMatches();
+      matchesRef.current = [];
+      return;
+    }
+
+    const matches = findMatches(article, committedQuery);
+    matchesRef.current = matches;
+    paintMatches(matches, matchIndex);
+
+    if (matches.length !== matchCount) setMatchCount(matches.length);
+  });
 
   const stepMatch = useCallback(
     (direction: 1 | -1) => {
-      const marks = marksRef.current;
-      if (!marks.length) return;
+      const matches = matchesRef.current;
+      if (!matches.length) return;
 
-      const next = (matchIndex + direction + marks.length) % marks.length;
-      setMatchIndex(next);
-      setActiveHighlight(marks, next);
-      const node = scrollRef.current;
-      if (node) scrollTo(marks[next].offsetTop - node.clientHeight / 3, true);
+      // Derive from the previous value rather than a captured one, so `n`
+      // pressed in quick succession does not repeatedly read a stale index.
+      setMatchIndex((current) => {
+        const next = (current + direction + matches.length) % matches.length;
+        paintMatches(matches, next);
+        revealMatch(matches[next]);
+        return next;
+      });
     },
-    [matchIndex, scrollTo]
+    [revealMatch]
   );
 
-  // Drop highlights when the post changes.
+  // Highlights are global to the document, so they must be dropped when this
+  // reader goes away or moves to another post.
   useEffect(() => {
     return () => {
-      const article = articleRef.current;
-      if (article) clearHighlights(article);
-      marksRef.current = [];
+      clearMatches();
+      matchesRef.current = [];
     };
   }, [slug]);
 
@@ -324,24 +433,47 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
         case 'motion': {
           const node = scrollRef.current;
           if (!node) return;
+          const motion = action.motion;
 
-          if (action.motion.kind === 'paragraph') {
-            jumpToElement('p, pre, blockquote, ul, ol, figure, table', action.motion.direction, action.count);
+          if (motion.kind === 'paragraph') {
+            jumpToElement('p, pre, blockquote, ul, ol, figure, table', motion.direction, action.count);
             return;
           }
-          if (action.motion.kind === 'heading') {
-            jumpToElement('h1, h2, h3', action.motion.direction, action.count);
+          if (motion.kind === 'heading') {
+            jumpToElement('h1, h2, h3', motion.direction, action.count);
             return;
           }
 
-          const target = resolveScroll(action.motion, action.count, {
-            scrollTop: node.scrollTop,
-            clientHeight: node.clientHeight,
-            scrollHeight: node.scrollHeight,
-            lineHeight: lineHeight(),
-          });
+          // Before the line boxes have been measured there is no cursor to
+          // move, so fall back to scrolling the view outright.
+          if (lines.length === 0) {
+            scrollTo(
+              resolveScroll(motion, action.count, {
+                scrollTop: node.scrollTop,
+                clientHeight: node.clientHeight,
+                scrollHeight: node.scrollHeight,
+                lineHeight: lineHeight(),
+              }),
+              motion.kind !== 'line'
+            );
+            return;
+          }
+
+          if (motion.kind === 'edge') {
+            moveCursorTo(motion.edge === 'top' ? 0 : lines.length - 1, true);
+            return;
+          }
+
+          const perScreen = Math.max(1, Math.round(node.clientHeight / Math.max(1, lineHeight())));
+          const step =
+            motion.kind === 'line'
+              ? 1
+              : motion.kind === 'half-page'
+                ? Math.max(1, Math.floor(perScreen / 2))
+                : Math.max(1, perScreen - 2);
+
           // Single-line moves stay instant; jumps get eased.
-          scrollTo(target, action.motion.kind !== 'line');
+          moveCursorTo(cursorIndex + motion.direction * step * action.count, motion.kind !== 'line');
           return;
         }
       }
@@ -349,8 +481,11 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
     [
       command,
       committedQuery,
+      cursorIndex,
       jumpToElement,
       lineHeight,
+      lines,
+      moveCursorTo,
       mode,
       notice,
       onQuit,
@@ -401,8 +536,15 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
           </div>
         )}
 
+        {post && !isTouch && (
+          <SmearCursor
+            block={lines.length ? cursorBlock(lines[clampIndex(cursorIndex, lines.length)]) : null}
+            animated={!reducedMotion}
+          />
+        )}
+
         {post && (
-          <article ref={articleRef} className="prose-reader py-10">
+          <article ref={articleRef} className="prose-reader relative z-10 py-10">
             <header className="mb-10">
               <h1 className="!mt-0 text-[color:var(--ctp-text)]">{post.title}</h1>
               <p className="!mt-3 font-mono text-[0.8em] text-[color:var(--ctp-overlay1)]">

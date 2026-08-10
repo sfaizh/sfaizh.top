@@ -114,6 +114,52 @@ test.describe('the reader', () => {
     await expect(page.getByLabel('Terminal input')).toBeAttached();
   });
 
+  test('shows a cursor that moves with j', async ({ page }) => {
+    await bootedPage(page);
+    await openPost(page);
+
+    const cursor = page.locator('[data-reader-cursor]');
+    await expect(cursor).toBeVisible();
+    const before = (await cursor.boundingBox())?.y ?? 0;
+
+    await page.keyboard.press('j');
+    await page.keyboard.press('j');
+
+    await expect
+      .poll(async () => (await cursor.boundingBox())?.y ?? 0, { timeout: 5000 })
+      .toBeGreaterThan(before);
+  });
+
+  test('searches with / and steps through matches with n and N', async ({ page }) => {
+    await bootedPage(page);
+    await openPost(page);
+
+    await page.keyboard.press('/');
+    await page.getByLabel('Search within the post').fill('statusline');
+    await page.getByLabel('Search within the post').press('Enter');
+
+    const status = page.getByRole('status');
+    await expect(status).toContainText('1/2');
+
+    // Highlights are painted through the CSS Custom Highlight API, so there is
+    // no element to assert on — ask the registry instead.
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            (CSS.highlights.get('reader-hit')?.size ?? 0) +
+            (CSS.highlights.get('reader-hit-active')?.size ?? 0)
+        )
+      )
+      .toBe(2);
+
+    await page.keyboard.press('n');
+    await expect(status).toContainText('2/2');
+
+    await page.keyboard.press('N');
+    await expect(status).toContainText('1/2');
+  });
+
   test('reserves space for images so the prose cannot jump', async ({ page }) => {
     // The bug this guards: an image whose resource is unavailable — not yet
     // loaded, or evicted under memory pressure on a phone — collapsed to zero

@@ -21,7 +21,6 @@ jest.mock('../lib/api-client', () => ({
   },
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { api } = jest.requireMock('../lib/api-client') as {
   api: Record<string, jest.Mock>;
 };

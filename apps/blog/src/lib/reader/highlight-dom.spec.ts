@@ -1,4 +1,10 @@
-import { applyHighlights, clearHighlights, setActiveHighlight } from './highlight-dom';
+import { clearMatches, findMatches, paintMatches, supportsHighlights } from './highlight-dom';
+
+/**
+ * `findMatches` is the part that has to be right — the painting is delegated
+ * to the browser's highlight registry, which jsdom does not implement, so the
+ * tests here assert on the ranges and that painting degrades quietly.
+ */
 
 function article(html: string): HTMLElement {
   const element = document.createElement('article');
@@ -7,106 +13,78 @@ function article(html: string): HTMLElement {
   return element;
 }
 
+const texts = (ranges: Range[]) => ranges.map((range) => range.toString());
+
 afterEach(() => {
   document.body.innerHTML = '';
 });
 
-describe('applyHighlights', () => {
-  it('wraps every occurrence across elements', () => {
+describe('findMatches', () => {
+  it('finds every occurrence across elements, in document order', () => {
     const root = article('<p>the motion grammar</p><p>another motion here</p>');
-    const marks = applyHighlights(root, 'motion');
+    const ranges = findMatches(root, 'motion');
 
-    expect(marks).toHaveLength(2);
-    expect(root.querySelectorAll('mark.reader-hit')).toHaveLength(2);
-    expect(marks[0].textContent).toBe('motion');
+    expect(ranges).toHaveLength(2);
+    expect(texts(ranges)).toEqual(['motion', 'motion']);
   });
 
-  it('matches case-insensitively but preserves the original casing', () => {
+  it('matches case-insensitively but selects the original text', () => {
     const root = article('<p>Motion and motion</p>');
-    const marks = applyHighlights(root, 'MOTION');
-
-    expect(marks).toHaveLength(2);
-    expect(marks[0].textContent).toBe('Motion');
-    expect(marks[1].textContent).toBe('motion');
+    expect(texts(findMatches(root, 'MOTION'))).toEqual(['Motion', 'motion']);
   });
 
-  it('finds several matches inside one text node', () => {
-    const root = article('<p>aa aa aa</p>');
-    expect(applyHighlights(root, 'aa')).toHaveLength(3);
-  });
+  it('finds several matches inside one text node without overlapping', () => {
+    const root = article('<p>aaaa</p>');
+    const ranges = findMatches(root, 'aa');
 
-  it('leaves the readable text unchanged', () => {
-    const root = article('<p>the motion grammar</p>');
-    applyHighlights(root, 'motion');
-
-    expect(root.textContent).toBe('the motion grammar');
-  });
-
-  it('returns nothing for an empty query and clears any existing marks', () => {
-    const root = article('<p>the motion grammar</p>');
-    applyHighlights(root, 'motion');
-
-    expect(applyHighlights(root, '   ')).toEqual([]);
-    expect(root.querySelectorAll('mark')).toHaveLength(0);
-  });
-
-  it('returns nothing when there is no match', () => {
-    const root = article('<p>the motion grammar</p>');
-    expect(applyHighlights(root, 'zzzz')).toEqual([]);
-  });
-
-  it('replaces the previous highlights rather than nesting them', () => {
-    const root = article('<p>the motion grammar of motion</p>');
-    applyHighlights(root, 'motion');
-    const second = applyHighlights(root, 'grammar');
-
-    expect(second).toHaveLength(1);
-    expect(root.querySelectorAll('mark')).toHaveLength(1);
-    expect(root.textContent).toBe('the motion grammar of motion');
+    expect(ranges).toHaveLength(2);
+    expect(ranges[0].startOffset).toBe(0);
+    expect(ranges[1].startOffset).toBe(2);
   });
 
   it('searches inside nested markup', () => {
     const root = article('<p>a <strong>bold motion</strong> here</p>');
-    expect(applyHighlights(root, 'motion')).toHaveLength(1);
+    expect(findMatches(root, 'motion')).toHaveLength(1);
   });
-});
 
-describe('clearHighlights', () => {
-  it('restores the document to plain text nodes', () => {
+  it('returns nothing for an empty or whitespace query', () => {
     const root = article('<p>the motion grammar</p>');
-    applyHighlights(root, 'motion');
-    clearHighlights(root);
-
-    expect(root.innerHTML).toBe('<p>the motion grammar</p>');
-    expect(root.querySelector('p')?.childNodes).toHaveLength(1);
+    expect(findMatches(root, '')).toEqual([]);
+    expect(findMatches(root, '   ')).toEqual([]);
   });
 
-  it('is safe to call when nothing is highlighted', () => {
-    const root = article('<p>text</p>');
-    expect(() => clearHighlights(root)).not.toThrow();
+  it('returns nothing when there is no match', () => {
+    expect(findMatches(article('<p>the motion grammar</p>'), 'zzzz')).toEqual([]);
+  });
+
+  it('leaves the document completely untouched', () => {
+    const root = article('<p>the motion grammar</p>');
+    const before = root.innerHTML;
+
+    findMatches(root, 'motion');
+
+    // The whole point of the range-based approach: nothing is inserted.
+    expect(root.innerHTML).toBe(before);
+    expect(root.querySelectorAll('mark')).toHaveLength(0);
+  });
+
+  it('produces ranges that survive being re-read', () => {
+    const root = article('<p>the motion grammar</p>');
+    const [range] = findMatches(root, 'motion');
+
+    expect(range.toString()).toBe('motion');
+    expect(range.toString()).toBe('motion');
   });
 });
 
-describe('setActiveHighlight', () => {
-  it('marks exactly one hit as active', () => {
-    const root = article('<p>motion motion motion</p>');
-    const marks = applyHighlights(root, 'motion');
+describe('painting', () => {
+  it('degrades quietly where the highlight registry is unavailable', () => {
+    const root = article('<p>motion</p>');
+    const ranges = findMatches(root, 'motion');
 
-    setActiveHighlight(marks, 1);
-
-    expect(marks[0].classList.contains('reader-hit-active')).toBe(false);
-    expect(marks[1].classList.contains('reader-hit-active')).toBe(true);
-    expect(root.querySelectorAll('.reader-hit-active')).toHaveLength(1);
-  });
-
-  it('moves the active class when the index changes', () => {
-    const root = article('<p>motion motion</p>');
-    const marks = applyHighlights(root, 'motion');
-
-    setActiveHighlight(marks, 0);
-    setActiveHighlight(marks, 1);
-
-    expect(marks[0].classList.contains('reader-hit-active')).toBe(false);
-    expect(marks[1].classList.contains('reader-hit-active')).toBe(true);
+    // jsdom implements neither `CSS.highlights` nor `Highlight`.
+    expect(supportsHighlights()).toBe(false);
+    expect(() => paintMatches(ranges, 0)).not.toThrow();
+    expect(() => clearMatches()).not.toThrow();
   });
 });
