@@ -37,16 +37,14 @@ export const STATIC_FILES: Record<string, string> = {
 
 I like a good challenge and occasionally also work on cars.
 
+
 Things I care about: Systems engineering, site reliability, first principles and standards whether applied to frontend or backend and collaboration.
 `,
 
   'now.txt': `Currently
 ─────────
   · Building distributed systems and the tooling around them.
-  · Reading about editor design and text rendering.
-  · Writing the posts listed under ~/posts.
-
-This file is a "now page", the honest, dated answer to "what are you up to?".
+  · Learning linux internals, systems design, networking and implementing these in golang and typescript.
 `,
 
   'contact.txt': `Reach me
