@@ -13,6 +13,10 @@ import { SMEAR_FASTER, advance, settled, type LineRect, type Point } from '../..
  * cursor scrolls with the prose rather than floating over it.
  */
 
+function samePoint(a: Point | null, b: Point): boolean {
+  return a !== null && a.x === b.x && a.y === b.y;
+}
+
 interface Props {
   block: LineRect | null;
   /** Touch devices have no cursor to move, and reduced motion gets no smear. */
@@ -20,20 +24,24 @@ interface Props {
 }
 
 export function SmearCursor({ block, animated }: Props) {
+  // Depend on the numbers, not the object. A caller that rebuilds `block` every
+  // render would otherwise restart the animation on every frame it schedules.
+  const targetX = block?.x ?? null;
+  const targetY = block?.y ?? null;
   const [head, setHead] = useState<Point | null>(null);
   const [tail, setTail] = useState<Point | null>(null);
   const frame = useRef(0);
   const state = useRef<{ head: Point; tail: Point } | null>(null);
 
   useEffect(() => {
-    if (!block) {
+    if (targetX === null || targetY === null) {
       state.current = null;
       setHead(null);
       setTail(null);
       return;
     }
 
-    const target: Point = { x: block.x, y: block.y };
+    const target: Point = { x: targetX, y: targetY };
 
     // First appearance, or motion disabled: land immediately.
     if (!state.current || !animated) {
@@ -56,17 +64,19 @@ export function SmearCursor({ block, animated }: Props) {
         y: advance(current.tail.y, target.y, SMEAR_FASTER.trailingStiffness * SMEAR_FASTER.damping),
       };
 
-      setHead({ ...current.head });
-      setTail({ ...current.tail });
-
       if (settled(current.head, current.tail, target, SMEAR_FASTER.distanceStopAnimating)) {
         current.head = { ...target };
         current.tail = { ...target };
-        setHead({ ...target });
-        setTail({ ...target });
+        // Keep the previous object when nothing moved, so a settled cursor
+        // stops producing renders instead of looping forever.
+        setHead((prev) => (samePoint(prev, target) ? prev : { ...target }));
+        setTail((prev) => (samePoint(prev, target) ? prev : { ...target }));
         frame.current = 0;
         return;
       }
+
+      setHead({ ...current.head });
+      setTail({ ...current.tail });
       frame.current = window.requestAnimationFrame(tick);
     };
 
@@ -74,7 +84,7 @@ export function SmearCursor({ block, animated }: Props) {
     frame.current = window.requestAnimationFrame(tick);
 
     return () => window.cancelAnimationFrame(frame.current);
-  }, [block, animated]);
+  }, [targetX, targetY, animated]);
 
   useEffect(() => () => window.cancelAnimationFrame(frame.current), []);
 

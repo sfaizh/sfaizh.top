@@ -255,6 +255,27 @@ test.describe('the reader', () => {
     await expect(page.getByLabel('Terminal input')).toBeAttached();
   });
 
+  test('survives a burst of motions without a render loop', async ({ page }) => {
+    // The bug this guards: the cursor's smear effect keyed off a fresh object
+    // every render, so each animation frame scheduled another render. React
+    // eventually threw "Maximum update depth exceeded" and tore the tree down —
+    // the page went grey the moment you touched a motion key.
+    const failures: string[] = [];
+    page.on('pageerror', (error) => failures.push(String(error)));
+
+    await bootedPage(page);
+    await openPost(page);
+
+    const keys = ['j', 'k', 'l', 'h', 'w', 'b', 'e', '$', '0', '^', 'v', 'V', 'G', 'g'];
+    for (let step = 0; step < 60; step++) {
+      await page.keyboard.press(keys[step % keys.length]);
+    }
+
+    expect(failures).toEqual([]);
+    await expect(page.getByRole('document', { name: /reader/ })).toBeVisible();
+    await expect(page.locator('[data-reader-cursor]')).toBeVisible();
+  });
+
   test('reserves space for images so the prose cannot jump', async ({ page }) => {
     // The bug this guards: an image whose resource is unavailable — not yet
     // loaded, or evicted under memory pressure on a phone — collapsed to zero

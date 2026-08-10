@@ -53,6 +53,13 @@ type Mode = 'normal' | 'search' | 'command';
 
 const WHITESPACE = /\s/;
 
+/** Value equality, so an unchanged measurement keeps its object identity. */
+function sameRect(a: LineRect | null, b: LineRect | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+}
+
 /** Two positions share a visual line when their rectangles share a baseline. */
 function onSameLine(map: TextMap, a: number, b: number): boolean {
   const first = viewportRectForIndex(map, a);
@@ -243,7 +250,7 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
       setCursor(next);
 
       const rect = rectForIndex(map, next, container);
-      setCursorRect(rect);
+      setCursorRect((prev) => (sameRect(prev, rect) ? prev : rect));
       if (!rect) return;
 
       const target = scrollToReveal(rect, {
@@ -260,7 +267,8 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
     const map = textMap();
     const container = scrollRef.current;
     if (!map || !container) return;
-    setCursorRect(rectForIndex(map, cursor, container));
+    const rect = rectForIndex(map, cursor, container);
+    setCursorRect((prev) => (sameRect(prev, rect) ? prev : rect));
   }, [cursor, textMap]);
 
   useEffect(() => {
@@ -781,6 +789,11 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
 
   const pendingLabel = describePending(pending);
 
+  // Memoised so the smear's effect is not re-triggered by a fresh object on
+  // every render — that turns each animation frame into another render, and
+  // React eventually gives up with "Maximum update depth exceeded".
+  const cursorBlockValue = useMemo(() => (cursorRect ? cursorBlock(cursorRect) : null), [cursorRect]);
+
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
       <div
@@ -808,7 +821,7 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
 
         {post && !isTouch && (
           <SmearCursor
-            block={cursorRect ? cursorBlock(cursorRect) : null}
+            block={cursorBlockValue}
             animated={!reducedMotion}
           />
         )}
