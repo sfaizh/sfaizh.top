@@ -16,6 +16,11 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["@sfaizh.top/source"]
+    "customConditions": ["@sfaizh.top/source"],
+    "baseUrl": ".",
+    "paths": {
+      "@sfaizh/shared": ["libs/shared/src/index.ts"],
+      "@sfaizh/api": ["apps/api/src/index.ts"]
+    }
   }
 }

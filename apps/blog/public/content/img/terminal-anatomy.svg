@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="1200" height="680" role="img" aria-labelledby="ta-title ta-desc">
+  <title id="ta-title">The anatomy of the terminal surface</title>
+  <desc id="ta-desc">A diagram of the sfaizh.top layout: a split-flap header at the top, a centred terminal scrollback in the middle, and a tmux-style statusline at the bottom.</desc>
+
+  <defs>
+    <style>
+      .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+      .lbl  { font-family: ui-monospace, monospace; font-size: 15px; fill: #7f849c; letter-spacing: .08em; }
+      .cap  { font-family: ui-monospace, monospace; font-size: 14px; fill: #6c7086; }
+    </style>
+    <linearGradient id="ta-glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cba6f7" stop-opacity=".22"/>
+      <stop offset="100%" stop-color="#89b4fa" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="680" fill="#11111b"/>
+  <rect x="150" y="40" width="900" height="600" rx="12" fill="#1e1e2e" stroke="#313244" stroke-width="1.5"/>
+  <rect x="150" y="40" width="900" height="150" rx="12" fill="url(#ta-glow)"/>
+
+  <!-- ── header: split-flap ─────────────────────────────────────────── -->
+  <g transform="translate(0,0)">
+    <g class="mono" font-size="30" font-weight="700">
+      <g transform="translate(430,86)">
+        <rect x="0"   y="0" width="34" height="46" rx="4" fill="#313244"/>
+        <rect x="38"  y="0" width="34" height="46" rx="4" fill="#313244"/>
+        <rect x="76"  y="0" width="34" height="46" rx="4" fill="#45475a"/>
+        <rect x="114" y="0" width="34" height="46" rx="4" fill="#313244"/>
+        <rect x="152" y="0" width="34" height="46" rx="4" fill="#313244"/>
+        <rect x="190" y="0" width="34" height="46" rx="4" fill="#45475a"/>
+        <rect x="228" y="0" width="34" height="46" rx="4" fill="#313244"/>
+        <rect x="266" y="0" width="34" height="46" rx="4" fill="#313244"/>
+        <rect x="304" y="0" width="34" height="46" rx="4" fill="#313244"/>
+        <g fill="#cdd6f4" text-anchor="middle">
+          <text x="17"  y="33">s</text><text x="55"  y="33">f</text>
+          <text x="93"  y="33" fill="#f9e2af">a</text><text x="131" y="33">i</text>
+          <text x="169" y="33">z</text><text x="207" y="33" fill="#f9e2af">h</text>
+          <text x="245" y="33">.</text><text x="283" y="33">t</text>
+          <text x="321" y="33">o</text>
+        </g>
+        <!-- hinge line across every flap -->
+        <path d="M0 23 H338" stroke="#11111b" stroke-width="1.5" opacity=".8"/>
+      </g>
+    </g>
+    <line x1="150" y1="190" x2="1050" y2="190" stroke="#313244" stroke-width="1.5"/>
+    <text class="lbl" x="1070" y="115">HEADER</text>
+    <text class="cap" x="1070" y="136">split-flap,</text>
+    <text class="cap" x="1070" y="154">2 phrases</text>
+    <path d="M1062 108 H1015" stroke="#585b70" stroke-width="1.5" fill="none"/>
+  </g>
+
+  <!-- ── terminal scrollback ────────────────────────────────────────── -->
+  <g class="mono" font-size="17">
+    <!-- powerline prompt -->
+    <g transform="translate(200,240)">
+      <path d="M0 -16 H84 L98 0 L84 16 H0 Z" fill="#89b4fa"/>
+      <path d="M84 -16 H188 L202 0 L188 16 H84 Z" fill="#585b70"/>
+      <text x="14" y="6" fill="#11111b" font-weight="700">~/blog</text>
+      <text x="98" y="6" fill="#cdd6f4"> main ✓</text>
+      <text x="216" y="6" fill="#a6e3a1">❯</text>
+      <text x="240" y="6" fill="#cdd6f4">ls</text>
+    </g>
+
+    <text x="200" y="290" fill="#89b4fa">posts/</text>
+    <text x="300" y="290" fill="#89b4fa">about.md</text>
+    <text x="450" y="290" fill="#a6adc8">now.txt</text>
+
+    <g transform="translate(200,340)">
+      <path d="M0 -16 H84 L98 0 L84 16 H0 Z" fill="#89b4fa"/>
+      <path d="M84 -16 H188 L202 0 L188 16 H84 Z" fill="#585b70"/>
+      <text x="14" y="6" fill="#11111b" font-weight="700">~/blog</text>
+      <text x="98" y="6" fill="#cdd6f4"> main ✓</text>
+      <text x="216" y="6" fill="#a6e3a1">❯</text>
+      <text x="240" y="6" fill="#cdd6f4">open building-a-</text>
+      <text x="440" y="6" fill="#6c7086">terminal-blog</text>
+    </g>
+
+    <!-- autocomplete menu -->
+    <g transform="translate(440,356)">
+      <rect x="0" y="0" width="286" height="112" rx="6" fill="#181825" stroke="#45475a"/>
+      <rect x="4" y="6" width="278" height="26" rx="4" fill="#45475a"/>
+      <text x="16" y="24" font-size="15" fill="#f9e2af">building-a-terminal-blog</text>
+      <text x="16" y="54" font-size="15" fill="#a6adc8">vim-motions-as-a-design…</text>
+      <text x="16" y="82" font-size="15" fill="#6c7086">— 2 posts, ↹ to accept</text>
+    </g>
+    <text class="lbl" x="1070" y="330">SHELL</text>
+    <text class="cap" x="1070" y="351">history,</text>
+    <text class="cap" x="1070" y="369">completion,</text>
+    <text class="cap" x="1070" y="387">readline keys</text>
+    <path d="M1062 323 H1015" stroke="#585b70" stroke-width="1.5" fill="none"/>
+
+    <!-- blinking cursor block -->
+    <g transform="translate(200,510)">
+      <path d="M0 -16 H84 L98 0 L84 16 H0 Z" fill="#89b4fa"/>
+      <path d="M84 -16 H188 L202 0 L188 16 H84 Z" fill="#585b70"/>
+      <text x="14" y="6" fill="#11111b" font-weight="700">~/blog</text>
+      <text x="98" y="6" fill="#cdd6f4"> main ✓</text>
+      <text x="216" y="6" fill="#a6e3a1">❯</text>
+      <rect x="240" y="-13" width="12" height="26" fill="#f5e0dc"/>
+    </g>
+  </g>
+
+  <!-- ── statusline ─────────────────────────────────────────────────── -->
+  <g transform="translate(150,586)">
+    <rect x="0" y="0" width="900" height="34" fill="#181825"/>
+    <path d="M0 0 H92 L106 17 L92 34 H0 Z" fill="#a6e3a1"/>
+    <text class="mono" x="18" y="23" font-size="15" font-weight="700" fill="#11111b">SHELL</text>
+    <text class="mono" x="122" y="23" font-size="15" fill="#a6adc8">0:zsh*  1:posts</text>
+    <text class="mono" x="330" y="23" font-size="15" fill="#6c7086">help · ls · open &lt;slug&gt; · theme</text>
+    <path d="M900 0 H790 L776 17 L790 34 H900 Z" fill="#cba6f7"/>
+    <text class="mono" x="806" y="23" font-size="15" font-weight="700" fill="#11111b">23:41</text>
+  </g>
+  <text class="lbl" x="1070" y="597">STATUS</text>
+  <text class="cap" x="1070" y="618">tmux · nvim</text>
+  <path d="M1062 590 H1015" stroke="#585b70" stroke-width="1.5" fill="none"/>
+</svg>

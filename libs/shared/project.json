@@ -1,0 +1,16 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "shared",
+  "projectType": "library",
+  "sourceRoot": "libs/shared/src",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "jest --config libs/shared/jest.config.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:lib"]
+}

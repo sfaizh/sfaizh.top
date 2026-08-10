@@ -2,412 +2,602 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  -webkit-text-size-adjust: 100%;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,
-    Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
-  line-height: 1.5;
-  tab-size: 4;
-  scroll-behavior: smooth;
-}
-body {
-  font-family: inherit;
-  line-height: inherit;
-  margin: 0;
-}
-h1,
-h2,
-p,
-pre {
-  margin: 0;
-}
-*,
-::before,
-::after {
-  box-sizing: border-box;
-  border-width: 0;
-  border-style: solid;
-  border-color: currentColor;
-}
-h1,
-h2 {
-  font-size: inherit;
-  font-weight: inherit;
-}
-a {
-  color: inherit;
-  text-decoration: inherit;
-}
-pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    Liberation Mono, Courier New, monospace;
-}
-svg {
-  display: block;
-  vertical-align: middle;
-  shape-rendering: auto;
-  text-rendering: optimizeLegibility;
-}
-pre {
-  background-color: rgba(55, 65, 81, 1);
-  border-radius: 0.25rem;
-  color: rgba(229, 231, 235, 1);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    Liberation Mono, Courier New, monospace;
-  overflow: scroll;
-  padding: 0.5rem 0.75rem;
+/* ───────────────────────────────────────────────────────────────────────────
+   Fonts.
+
+   No webfont is downloaded. A terminal should use the terminal font the
+   reader already has, and powerline separators are drawn as CSS shapes rather
+   than glyphs so they render identically whether or not a Nerd Font is
+   installed. If one *is* installed it is picked up first and the ligatures and
+   glyphs come along for free.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --font-mono: 'MesloLGS NF', 'JetBrainsMono Nerd Font', 'JetBrainsMono NF',
+    'FiraCode Nerd Font', 'Hack Nerd Font', 'SauceCodePro Nerd Font', 'JetBrains Mono',
+    'Fira Code', 'Cascadia Code', ui-monospace, SFMono-Regular, 'SF Mono', Menlo,
+    Consolas, 'Liberation Mono', monospace;
+  --font-prose: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+
+  --terminal-width: min(1080px, 92vw);
+  --statusline-height: 30px;
+  --header-height: 84px;
+
+  color-scheme: dark;
 }
 
-.shadow {
-  box-shadow: 0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+:root[data-flavour='latte'] {
+  color-scheme: light;
 }
-.rounded {
-  border-radius: 1.5rem;
-}
-.wrapper {
-  width: 100%;
-}
-.container {
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 768px;
-  padding-bottom: 3rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  color: rgba(55, 65, 81, 1);
-  width: 100%;
-}
-#welcome {
-  margin-top: 2.5rem;
-}
-#welcome h1 {
-  font-size: 3rem;
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  line-height: 1;
-}
-#welcome span {
-  display: block;
-  font-size: 1.875rem;
-  font-weight: 300;
-  line-height: 2.25rem;
-  margin-bottom: 0.5rem;
-}
-#hero {
-  align-items: center;
-  background-color: hsla(214, 62%, 21%, 1);
-  border: none;
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Base layout
+   ─────────────────────────────────────────────────────────────────────────── */
+* {
   box-sizing: border-box;
-  color: rgba(55, 65, 81, 1);
-  display: grid;
-  grid-template-columns: 1fr;
-  margin-top: 3.5rem;
 }
-#hero .text-container {
-  color: rgba(255, 255, 255, 1);
-  padding: 3rem 2rem;
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
-#hero .text-container h2 {
-  font-size: 1.5rem;
-  line-height: 2rem;
+
+body {
+  background: var(--ctp-crust);
+  color: var(--ctp-text);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Very subtle CRT wash — enough to feel like a phosphor screen, not enough to
+   hurt. Disabled entirely for reduced-motion and for the light flavour. */
+.crt::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    color-mix(in srgb, var(--ctp-crust) 26%, transparent) 2px 3px
+  );
+  opacity: 0.45;
+  mix-blend-mode: multiply;
+}
+
+:root[data-flavour='latte'] .crt::after {
+  display: none;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Scrollbars — thin, themed, always present so layout never shifts
+   ─────────────────────────────────────────────────────────────────────────── */
+.scroll-themed {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ctp-surface1) transparent;
+}
+.scroll-themed::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.scroll-themed::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-themed::-webkit-scrollbar-thumb {
+  background: var(--ctp-surface1);
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.scroll-themed::-webkit-scrollbar-thumb:hover {
+  background: var(--ctp-surface2);
+  background-clip: content-box;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Powerline segments, drawn rather than typed
+   ─────────────────────────────────────────────────────────────────────────── */
+.pl-seg {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 0.7rem 0 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Right-pointing arrow head cut into the following segment. */
+.pl-arrow-right {
+  clip-path: polygon(0 0, calc(100% - 0.55rem) 0, 100% 50%, calc(100% - 0.55rem) 100%, 0 100%);
+  padding-right: 1.15rem;
+  margin-right: -0.5rem;
+}
+
+.pl-arrow-left {
+  clip-path: polygon(0.55rem 0, 100% 0, 100% 100%, 0.55rem 100%, 0 50%);
+  padding-left: 1.15rem;
+  margin-left: -0.5rem;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Split-flap header
+   ─────────────────────────────────────────────────────────────────────────── */
+.flap {
+  position: relative;
+  display: inline-block;
+  min-width: 0.62em;
+  text-align: center;
+  border-radius: 3px;
+  background: var(--ctp-surface0);
+  color: var(--ctp-text);
+  padding: 0.1em 0.06em;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--ctp-crust) 60%, transparent);
+}
+
+/* The hairline hinge that makes a flap read as a flap. */
+.flap::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--ctp-crust);
+  opacity: 0.75;
+}
+
+.flap-settling {
+  animation: flap-settle 180ms cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@keyframes flap-settle {
+  0% {
+    transform: rotateX(-72deg);
+    filter: brightness(0.6);
+  }
+  70% {
+    transform: rotateX(8deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+    filter: brightness(1);
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Terminal
+   ─────────────────────────────────────────────────────────────────────────── */
+.terminal-caret {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.15em;
+  vertical-align: text-bottom;
+  background: var(--ctp-rosewater);
+  animation: blink 1.05s steps(1) infinite;
+}
+
+.terminal-caret-inactive {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--ctp-overlay0);
+  animation: none;
+}
+
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.line-enter {
+  animation: fade-up 110ms ease-out both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Syntax tokens (see libs/shared/src/lib/highlight.ts)
+   ─────────────────────────────────────────────────────────────────────────── */
+.tok-comment {
+  color: var(--ctp-overlay1);
+  font-style: italic;
+}
+.tok-string {
+  color: var(--ctp-green);
+}
+.tok-number {
+  color: var(--ctp-peach);
+}
+.tok-keyword {
+  color: var(--ctp-mauve);
+}
+.tok-builtin {
+  color: var(--ctp-yellow);
+}
+.tok-function {
+  color: var(--ctp-blue);
+}
+.tok-property {
+  color: var(--ctp-lavender);
+}
+.tok-operator {
+  color: var(--ctp-sky);
+}
+.tok-punctuation {
+  color: var(--ctp-overlay2);
+}
+.tok-variable {
+  color: var(--ctp-red);
+}
+.tok-inserted {
+  color: var(--ctp-green);
+}
+.tok-deleted {
+  color: var(--ctp-red);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Reader prose
+
+   The terminal metaphor stops at the door: long-form reading gets a
+   proportional typeface, a 75ch measure and generous leading, because that is
+   what actually makes prose readable.
+   ─────────────────────────────────────────────────────────────────────────── */
+.prose-reader {
+  font-family: var(--font-prose);
+  font-size: clamp(16px, 0.55vw + 15px, 18.5px);
+  line-height: 1.72;
+  color: var(--ctp-text);
+  max-width: 75ch;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+.prose-reader > * + * {
+  margin-top: 1.15em;
+}
+
+.prose-reader h1,
+.prose-reader h2,
+.prose-reader h3,
+.prose-reader h4 {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  scroll-margin-top: 2rem;
+  color: var(--ctp-lavender);
+}
+
+.prose-reader h1 {
+  font-size: 1.7em;
+  margin-top: 1.8em;
+}
+.prose-reader h2 {
+  font-size: 1.32em;
+  margin-top: 2em;
+  color: var(--ctp-mauve);
+}
+.prose-reader h2::before {
+  content: '## ';
+  color: var(--ctp-overlay0);
+  font-weight: 400;
+}
+.prose-reader h3 {
+  font-size: 1.12em;
+  margin-top: 1.7em;
+  color: var(--ctp-blue);
+}
+.prose-reader h3::before {
+  content: '### ';
+  color: var(--ctp-overlay0);
+  font-weight: 400;
+}
+
+.prose-reader a {
+  color: var(--ctp-sapphire);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--ctp-sapphire) 45%, transparent);
+  text-underline-offset: 3px;
+}
+.prose-reader a:hover {
+  color: var(--ctp-sky);
+  text-decoration-color: currentColor;
+}
+
+.prose-reader strong {
+  color: var(--ctp-rosewater);
+  font-weight: 650;
+}
+.prose-reader em {
+  color: var(--ctp-flamingo);
+}
+
+.prose-reader code {
+  font-family: var(--font-mono);
+  font-size: 0.87em;
+  background: var(--ctp-surface0);
+  color: var(--ctp-peach);
+  padding: 0.12em 0.36em;
+  border-radius: 4px;
+}
+
+.prose-reader pre {
+  font-family: var(--font-mono);
+  font-size: 0.84em;
+  line-height: 1.6;
+  background: var(--ctp-mantle);
+  border: 1px solid var(--ctp-surface0);
+  border-left: 3px solid var(--ctp-mauve);
+  border-radius: 6px;
+  padding: 0.95rem 1.1rem;
+  overflow-x: auto;
   position: relative;
 }
-#hero .text-container h2 svg {
-  color: hsla(162, 47%, 50%, 1);
-  height: 2rem;
-  left: -0.25rem;
+
+.prose-reader pre code {
+  background: none;
+  color: var(--ctp-text);
+  padding: 0;
+  font-size: 1em;
+}
+
+/* The language badge, the way a good terminal pager would label a buffer. */
+.prose-reader pre[data-lang]::before {
+  content: attr(data-lang);
   position: absolute;
   top: 0;
-  width: 2rem;
+  right: 0;
+  font-size: 0.72em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ctp-overlay0);
+  background: var(--ctp-surface0);
+  padding: 0.1rem 0.5rem;
+  border-radius: 0 5px 0 5px;
 }
-#hero .text-container h2 span {
-  margin-left: 2.5rem;
+
+.prose-reader blockquote {
+  border-left: 3px solid var(--ctp-yellow);
+  padding-left: 1.1rem;
+  color: var(--ctp-subtext1);
+  font-style: italic;
 }
-#hero .text-container a {
-  background-color: rgba(255, 255, 255, 1);
-  border-radius: 0.75rem;
-  color: rgba(55, 65, 81, 1);
-  display: inline-block;
-  margin-top: 1.5rem;
-  padding: 1rem 2rem;
-  text-decoration: inherit;
+
+.prose-reader ul,
+.prose-reader ol {
+  padding-left: 1.4rem;
 }
-#hero .logo-container {
-  display: none;
-  justify-content: center;
-  padding-left: 2rem;
-  padding-right: 2rem;
+.prose-reader li + li {
+  margin-top: 0.4em;
 }
-#hero .logo-container svg {
-  color: rgba(255, 255, 255, 1);
-  width: 66.666667%;
+.prose-reader ul li::marker {
+  color: var(--ctp-mauve);
 }
-#middle-content {
-  align-items: flex-start;
-  display: grid;
-  gap: 4rem;
-  grid-template-columns: 1fr;
-  margin-top: 3.5rem;
+.prose-reader ol li::marker {
+  color: var(--ctp-peach);
+  font-family: var(--font-mono);
 }
-#learning-materials {
-  padding: 2.5rem 2rem;
+
+.prose-reader hr {
+  border: none;
+  border-top: 1px dashed var(--ctp-surface1);
+  margin: 2.4em 0;
 }
-#learning-materials h2 {
-  font-weight: 500;
-  font-size: 1.25rem;
-  letter-spacing: -0.025em;
-  line-height: 1.75rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-.list-item-link {
-  align-items: center;
-  border-radius: 0.75rem;
-  display: flex;
-  margin-top: 1rem;
-  padding: 1rem;
-  transition-property: background-color, border-color, color, fill, stroke,
-    opacity, box-shadow, transform, filter, backdrop-filter,
-    -webkit-backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+
+.prose-reader table {
   width: 100%;
-}
-.list-item-link svg:first-child {
-  margin-right: 1rem;
-  height: 1.5rem;
-  transition-property: background-color, border-color, color, fill, stroke,
-    opacity, box-shadow, transform, filter, backdrop-filter,
-    -webkit-backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-  width: 1.5rem;
-}
-.list-item-link > span {
-  flex-grow: 1;
-  font-weight: 400;
-  transition-property: background-color, border-color, color, fill, stroke,
-    opacity, box-shadow, transform, filter, backdrop-filter,
-    -webkit-backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-.list-item-link > span > span {
-  color: rgba(107, 114, 128, 1);
+  border-collapse: collapse;
+  font-size: 0.92em;
   display: block;
-  flex-grow: 1;
-  font-size: 0.75rem;
-  font-weight: 300;
-  line-height: 1rem;
-  transition-property: background-color, border-color, color, fill, stroke,
-    opacity, box-shadow, transform, filter, backdrop-filter,
-    -webkit-backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  overflow-x: auto;
 }
-.list-item-link svg:last-child {
-  height: 1rem;
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-  width: 1rem;
+.prose-reader th,
+.prose-reader td {
+  border: 1px solid var(--ctp-surface0);
+  padding: 0.45rem 0.7rem;
+  text-align: left;
 }
-.list-item-link:hover {
-  color: rgba(255, 255, 255, 1);
-  background-color: hsla(162, 47%, 50%, 1);
+.prose-reader th {
+  background: var(--ctp-surface0);
+  font-family: var(--font-mono);
+  color: var(--ctp-subtext1);
 }
-.list-item-link:hover > span {
+
+.prose-reader .md-figure {
+  margin: 1.8em 0;
 }
-.list-item-link:hover > span > span {
-  color: rgba(243, 244, 246, 1);
-}
-.list-item-link:hover svg:last-child {
-  transform: translateX(0.25rem);
-}
-#other-links {
-}
-.button-pill {
-  padding: 1.5rem 2rem;
-  transition-duration: 300ms;
-  transition-property: background-color, border-color, color, fill, stroke,
-    opacity, box-shadow, transform, filter, backdrop-filter,
-    -webkit-backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  align-items: center;
-  display: flex;
-}
-.button-pill svg {
-  transition-property: background-color, border-color, color, fill, stroke,
-    opacity, box-shadow, transform, filter, backdrop-filter,
-    -webkit-backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-  flex-shrink: 0;
-  width: 3rem;
-}
-.button-pill > span {
-  letter-spacing: -0.025em;
-  font-weight: 400;
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-.button-pill span span {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 300;
-  line-height: 1.25rem;
-}
-.button-pill:hover svg,
-.button-pill:hover {
-  color: rgba(255, 255, 255, 1) !important;
-}
-#nx-console:hover {
-  background-color: rgba(0, 122, 204, 1);
-}
-#nx-console svg {
-  color: rgba(0, 122, 204, 1);
-}
-#nx-console-jetbrains {
-  margin-top: 2rem;
-}
-#nx-console-jetbrains:hover {
-  background-color: rgba(255, 49, 140, 1);
-}
-#nx-console-jetbrains svg {
-  color: rgba(255, 49, 140, 1);
-}
-#nx-repo:hover {
-  background-color: rgba(24, 23, 23, 1);
-}
-#nx-repo svg {
-  color: rgba(24, 23, 23, 1);
-}
-#nx-cloud {
-  margin-bottom: 2rem;
-  margin-top: 2rem;
-  padding: 2.5rem 2rem;
-}
-#nx-cloud > div {
-  align-items: center;
-  display: flex;
-}
-#nx-cloud > div svg {
-  border-radius: 0.375rem;
-  flex-shrink: 0;
-  width: 3rem;
-}
-#nx-cloud > div h2 {
-  font-size: 1.125rem;
-  font-weight: 400;
-  letter-spacing: -0.025em;
-  line-height: 1.75rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-#nx-cloud > div h2 span {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 300;
-  line-height: 1.25rem;
-}
-#nx-cloud p {
-  font-size: 1rem;
-  line-height: 1.5rem;
-  margin-top: 1rem;
-}
-#nx-cloud pre {
-  margin-top: 1rem;
-}
-#nx-cloud a {
-  color: rgba(107, 114, 128, 1);
-  display: block;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  margin-top: 1.5rem;
-  text-align: right;
-}
-#nx-cloud a:hover {
-  text-decoration: underline;
-}
-#commands {
-  padding: 2.5rem 2rem;
-  margin-top: 3.5rem;
-}
-#commands h2 {
-  font-size: 1.25rem;
-  font-weight: 400;
-  letter-spacing: -0.025em;
-  line-height: 1.75rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-#commands p {
-  font-size: 1rem;
-  font-weight: 300;
-  line-height: 1.5rem;
-  margin-top: 1rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-details {
-  align-items: center;
-  display: flex;
-  margin-top: 1rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
+.prose-reader .md-figure img {
   width: 100%;
-}
-details pre > span {
-  color: rgba(181, 181, 181, 1);
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--ctp-surface0);
+  background: var(--ctp-mantle);
   display: block;
 }
-summary {
-  border-radius: 0.5rem;
-  display: flex;
-  font-weight: 400;
-  padding: 0.5rem;
-  cursor: pointer;
-  transition-property: background-color, border-color, color, fill, stroke,
-    opacity, box-shadow, transform, filter, backdrop-filter,
-    -webkit-backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-summary:hover {
-  background-color: rgba(243, 244, 246, 1);
-}
-summary svg {
-  height: 1.5rem;
-  margin-right: 1rem;
-  width: 1.5rem;
-}
-#love {
-  color: rgba(107, 114, 128, 1);
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  margin-top: 3.5rem;
-  opacity: 0.6;
+.prose-reader figcaption {
+  margin-top: 0.6em;
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  color: var(--ctp-overlay1);
   text-align: center;
 }
-#love svg {
-  color: rgba(252, 165, 165, 1);
-  width: 1.25rem;
-  height: 1.25rem;
-  display: inline;
-  margin-top: -0.25rem;
+
+/* Search hits inside the reader, painted by the `/` motion. */
+.reader-hit {
+  background: color-mix(in srgb, var(--ctp-yellow) 34%, transparent);
+  border-radius: 2px;
 }
-@media screen and (min-width: 768px) {
-  #hero {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.reader-hit-active {
+  background: var(--ctp-yellow);
+  color: var(--ctp-crust);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Admin / editor
+   ─────────────────────────────────────────────────────────────────────────── */
+.editor-surface .ProseMirror {
+  min-height: 52vh;
+  outline: none;
+  font-family: var(--font-prose);
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--ctp-text);
+}
+
+.editor-surface .ProseMirror > * + * {
+  margin-top: 0.9em;
+}
+
+.editor-surface .ProseMirror h1,
+.editor-surface .ProseMirror h2,
+.editor-surface .ProseMirror h3 {
+  font-family: var(--font-mono);
+  color: var(--ctp-mauve);
+  font-weight: 700;
+}
+.editor-surface .ProseMirror h1 {
+  font-size: 1.55em;
+}
+.editor-surface .ProseMirror h2 {
+  font-size: 1.28em;
+}
+.editor-surface .ProseMirror h3 {
+  font-size: 1.1em;
+  color: var(--ctp-blue);
+}
+
+.editor-surface .ProseMirror pre {
+  background: var(--ctp-mantle);
+  border: 1px solid var(--ctp-surface0);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  overflow-x: auto;
+}
+
+.editor-surface .ProseMirror code {
+  font-family: var(--font-mono);
+  background: var(--ctp-surface0);
+  color: var(--ctp-peach);
+  padding: 0.1em 0.34em;
+  border-radius: 4px;
+}
+
+.editor-surface .ProseMirror blockquote {
+  border-left: 3px solid var(--ctp-yellow);
+  padding-left: 1rem;
+  color: var(--ctp-subtext1);
+}
+
+.editor-surface .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--ctp-surface0);
+}
+
+.editor-surface .ProseMirror a {
+  color: var(--ctp-sapphire);
+  text-decoration: underline;
+}
+
+.editor-surface .ProseMirror ul,
+.editor-surface .ProseMirror ol {
+  padding-left: 1.4rem;
+}
+
+.editor-surface .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--ctp-overlay0);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Focus + selection
+   ─────────────────────────────────────────────────────────────────────────── */
+::selection {
+  background: color-mix(in srgb, var(--ctp-mauve) 40%, transparent);
+  color: var(--ctp-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ctp-lavender);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Skip link for keyboard users who do not want the terminal. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--ctp-surface0);
+  color: var(--ctp-text);
+  padding: 0.6rem 1rem;
+  border-radius: 0 0 6px 0;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Reduced motion — everything decorative stops, nothing functional changes
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
-  #hero .logo-container {
-    display: flex;
+
+  .crt::after {
+    display: none;
   }
-  #middle-content {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  .terminal-caret {
+    opacity: 1;
+  }
+}
+
+@media print {
+  body {
+    background: white;
+    color: black;
+    overflow: visible;
+  }
+  .no-print {
+    display: none !important;
   }
 }

@@ -5,9 +5,6 @@
   "references": [
     {
       "path": "./apps/blog-e2e"
-    },
-    {
-      "path": "./apps/blog"
     }
   ]
 }

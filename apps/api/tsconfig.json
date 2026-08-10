@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["es2023"],
+    "types": ["node", "jest"],
+    "rootDir": "../..",
+    "outDir": "../../dist/apps/api",
+    "noEmit": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "baseUrl": ".",
+    "paths": {
+      "@sfaizh/shared": ["../../libs/shared/src/index.ts"],
+      "@sfaizh/api": ["./src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "../../libs/shared/src/**/*.ts"],
+  "exclude": ["**/*.spec.ts", "**/*.test.ts", "dist", "node_modules"]
+}

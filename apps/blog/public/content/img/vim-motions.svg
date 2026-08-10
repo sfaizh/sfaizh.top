@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="1200" height="680" role="img" aria-labelledby="vm-title vm-desc">
+  <title id="vm-title">A map of the motions this reader implements</title>
+  <desc id="vm-desc">A document column on the left annotated with the Vim motions that move through it — j and k for lines, Ctrl-D and Ctrl-U for half pages, curly braces for paragraphs, gg and G for the ends — beside a key legend on the right.</desc>
+
+  <defs>
+    <style>
+      .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+      .key  { font-family: ui-monospace, monospace; font-size: 16px; font-weight: 700; fill: #11111b; }
+      .desc { font-family: ui-monospace, monospace; font-size: 15px; fill: #a6adc8; }
+      .hd   { font-family: ui-monospace, monospace; font-size: 14px; fill: #6c7086; letter-spacing: .16em; }
+    </style>
+    <marker id="vm-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#cba6f7"/>
+    </marker>
+    <marker id="vm-arrow-t" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#94e2d5"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="680" fill="#11111b"/>
+
+  <!-- ── the document column ────────────────────────────────────────── -->
+  <g>
+    <rect x="70" y="50" width="440" height="580" rx="10" fill="#1e1e2e" stroke="#313244" stroke-width="1.5"/>
+    <text class="hd" x="70" y="36">THE DOCUMENT</text>
+
+    <!-- heading -->
+    <rect x="104" y="86" width="240" height="16" rx="4" fill="#cba6f7"/>
+    <!-- paragraph 1 -->
+    <g fill="#45475a">
+      <rect x="104" y="126" width="372" height="9" rx="4"/>
+      <rect x="104" y="146" width="372" height="9" rx="4"/>
+      <rect x="104" y="166" width="290" height="9" rx="4"/>
+    </g>
+    <!-- paragraph 2 -->
+    <g fill="#45475a">
+      <rect x="104" y="206" width="372" height="9" rx="4"/>
+      <rect x="104" y="226" width="340" height="9" rx="4"/>
+    </g>
+    <!-- code block -->
+    <rect x="104" y="262" width="372" height="76" rx="6" fill="#181825" stroke="#313244"/>
+    <g fill="#585b70">
+      <rect x="120" y="280" width="180" height="8" rx="4"/>
+      <rect x="120" y="298" width="240" height="8" rx="4"/>
+      <rect x="120" y="316" width="140" height="8" rx="4"/>
+    </g>
+    <!-- heading 2 -->
+    <rect x="104" y="368" width="190" height="14" rx="4" fill="#89b4fa"/>
+    <!-- paragraph 3 -->
+    <g fill="#45475a">
+      <rect x="104" y="406" width="372" height="9" rx="4"/>
+      <rect x="104" y="426" width="372" height="9" rx="4"/>
+      <rect x="104" y="446" width="372" height="9" rx="4"/>
+      <rect x="104" y="466" width="212" height="9" rx="4"/>
+    </g>
+    <!-- search match highlight -->
+    <rect x="196" y="500" width="104" height="18" rx="4" fill="#f9e2af" opacity=".85"/>
+    <g fill="#45475a">
+      <rect x="104" y="504" width="84" height="9" rx="4"/>
+      <rect x="308" y="504" width="168" height="9" rx="4"/>
+      <rect x="104" y="526" width="300" height="9" rx="4"/>
+    </g>
+    <text class="mono" x="196" y="560" font-size="14" fill="#f9e2af">/motion  →  n · N</text>
+
+    <!-- current line marker -->
+    <rect x="86" y="418" width="4" height="26" rx="2" fill="#a6e3a1"/>
+  </g>
+
+  <!-- ── motion arrows ──────────────────────────────────────────────── -->
+  <g stroke-width="2" fill="none">
+    <!-- j / k : one line -->
+    <path d="M556 418 V444" stroke="#cba6f7" marker-end="url(#vm-arrow)"/>
+    <path d="M584 418 V392" stroke="#cba6f7" marker-end="url(#vm-arrow)"/>
+    <text class="mono" x="600" y="418" font-size="16" fill="#cba6f7">j / k</text>
+    <text class="mono" x="600" y="438" font-size="13" fill="#6c7086">one line</text>
+
+    <!-- ctrl-d / ctrl-u : half screen -->
+    <path d="M528 250 V470" stroke="#94e2d5" marker-end="url(#vm-arrow-t)" marker-start="url(#vm-arrow-t)"/>
+    <text class="mono" x="600" y="256" font-size="16" fill="#94e2d5">^D / ^U</text>
+    <text class="mono" x="600" y="276" font-size="13" fill="#6c7086">half a screen</text>
+
+    <!-- braces : paragraph -->
+    <path d="M498 196 V240" stroke="#fab387" marker-end="url(#vm-arrow)"/>
+    <text class="mono" x="600" y="196" font-size="16" fill="#fab387">{ / }</text>
+    <text class="mono" x="600" y="216" font-size="13" fill="#6c7086">paragraph</text>
+
+    <!-- gg / G -->
+    <path d="M540 86 H600" stroke="#a6e3a1" marker-start="url(#vm-arrow)"/>
+    <text class="mono" x="612" y="92" font-size="16" fill="#a6e3a1">gg</text>
+    <text class="mono" x="648" y="92" font-size="13" fill="#6c7086">top</text>
+    <path d="M540 606 H600" stroke="#a6e3a1" marker-start="url(#vm-arrow)"/>
+    <text class="mono" x="612" y="612" font-size="16" fill="#a6e3a1">G</text>
+    <text class="mono" x="640" y="612" font-size="13" fill="#6c7086">bottom</text>
+
+    <!-- ]] headings -->
+    <path d="M516 368 H600" stroke="#89b4fa" marker-start="url(#vm-arrow)" stroke-dasharray="4 4"/>
+    <text class="mono" x="612" y="360" font-size="16" fill="#89b4fa">]] / [[</text>
+    <text class="mono" x="612" y="380" font-size="13" fill="#6c7086">heading</text>
+  </g>
+
+  <!-- ── legend / statusline ────────────────────────────────────────── -->
+  <g transform="translate(760,50)">
+    <text class="hd" x="0" y="-14">THE GRAMMAR</text>
+    <rect x="0" y="0" width="380" height="330" rx="10" fill="#1e1e2e" stroke="#313244" stroke-width="1.5"/>
+
+    <g transform="translate(24,34)">
+      <rect x="0" y="0" width="52" height="30" rx="5" fill="#cba6f7"/>
+      <text class="key" x="26" y="20" text-anchor="middle">10j</text>
+      <text class="desc" x="70" y="20">count + motion</text>
+    </g>
+    <g transform="translate(24,80)">
+      <rect x="0" y="0" width="52" height="30" rx="5" fill="#fab387"/>
+      <text class="key" x="26" y="20" text-anchor="middle">3}</text>
+      <text class="desc" x="70" y="20">3 paragraphs down</text>
+    </g>
+    <g transform="translate(24,126)">
+      <rect x="0" y="0" width="52" height="30" rx="5" fill="#f9e2af"/>
+      <text class="key" x="26" y="20" text-anchor="middle">/re</text>
+      <text class="desc" x="70" y="20">search, then n / N</text>
+    </g>
+    <g transform="translate(24,172)">
+      <rect x="0" y="0" width="52" height="30" rx="5" fill="#89dceb"/>
+      <text class="key" x="26" y="20" text-anchor="middle">?</text>
+      <text class="desc" x="70" y="20">show the whole map</text>
+    </g>
+    <g transform="translate(24,218)">
+      <rect x="0" y="0" width="52" height="30" rx="5" fill="#f38ba8"/>
+      <text class="key" x="26" y="20" text-anchor="middle">q</text>
+      <text class="desc" x="70" y="20">back to the shell</text>
+    </g>
+
+    <text class="mono" x="24" y="292" font-size="13" fill="#6c7086">no operators — nothing here edits</text>
+  </g>
+
+  <!-- nvim statusline sample -->
+  <g transform="translate(760,470)">
+    <text class="hd" x="0" y="-14">THE STATUSLINE TELLS YOU THE MODE</text>
+    <rect x="0" y="0" width="380" height="32" fill="#181825"/>
+    <path d="M0 0 H86 L100 16 L86 32 H0 Z" fill="#cba6f7"/>
+    <text class="mono" x="16" y="22" font-size="14" font-weight="700" fill="#11111b">NORMAL</text>
+    <text class="mono" x="112" y="22" font-size="13" fill="#a6adc8">vim-motions.md</text>
+    <path d="M380 0 H318 L304 16 L318 32 H380 Z" fill="#a6e3a1"/>
+    <text class="mono" x="326" y="22" font-size="13" font-weight="700" fill="#11111b">42%</text>
+  </g>
+  <text class="mono" x="760" y="546" font-size="13" fill="#6c7086">pending prefixes render here too — g…, 1 0 …</text>
+</svg>

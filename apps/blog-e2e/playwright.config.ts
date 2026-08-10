@@ -2,67 +2,35 @@ import { defineConfig, devices } from '@playwright/test';
 import { nxE2EPreset } from '@nx/playwright/preset';
 import { workspaceRoot } from '@nx/devkit';
 
-// For CI, you may want to set BASE_URL to the deployed application.
 const baseURL = process.env['BASE_URL'] || 'http://localhost:3000';
 
 /**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config();
-
-/**
- * See https://playwright.dev/docs/test-configuration.
+ * The e2e suite drives a production build, because the boot sequence, the
+ * mounted NestJS API and the reader's keyboard handling are all things that
+ * only behave identically once compiled. Chromium covers the desktop grammar;
+ * a Pixel profile covers the touch path, which is a different UI rather than a
+ * narrower one.
  */
 export default defineConfig({
   ...nxE2EPreset(__filename, { testDir: './src' }),
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     baseURL,
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    // Run the full Chromium build rather than the separate headless shell —
+    // one browser download, and the same engine a visitor actually has.
+    channel: 'chromium',
   },
-  /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npx nx run @sfaizh.top/blog:dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true,
+    command: 'npm run e2e:serve',
+    url: 'http://localhost:3000/api/v1/health',
+    reuseExistingServer: !process.env.CI,
     cwd: workspaceRoot,
+    timeout: 180_000,
   },
   projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    // Uncomment for mobile browsers support
-    /* {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    }, */
-
-    // Uncomment for branded browsers
-    /* {
-      name: 'Microsoft Edge',
-      use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    },
-    {
-      name: 'Google Chrome',
-      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    } */
+    // The mobile suite is a different UI, not a narrower one, so the desktop
+    // project skips it rather than running it at a desktop viewport.
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: /mobile\.spec\.ts/ },
+    { name: 'mobile', use: { ...devices['Pixel 5'] }, testMatch: /mobile\.spec\.ts/ },
   ],
 });

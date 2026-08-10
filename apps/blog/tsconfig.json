@@ -3,6 +3,8 @@
   "compilerOptions": {
     "jsx": "preserve",
     "noEmit": true,
+    "composite": false,
+    "declarationMap": false,
     "emitDeclarationOnly": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
@@ -11,17 +13,24 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2022",
+    "strictPropertyInitialization": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "plugins": [
       {
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@sfaizh/shared": ["../../libs/shared/src/index.ts"],
+      "@sfaizh/api": ["../api/src/index.ts"]
     },
     "types": ["jest", "node"],
-    "outDir": "dist",
-    "rootDir": "src",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": [
@@ -29,6 +38,9 @@
     "src/**/*.tsx",
     "src/**/*.js",
     "src/**/*.jsx",
+    "jest.setup.ts",
+    "jest.polyfills.ts",
+    "../../libs/shared/src/**/*.ts",
     "../../apps/blog/.next/types/**/*.ts",
     "../../dist/apps/blog/.next/types/**/*.ts",
     "next-env.d.ts"
@@ -37,10 +49,6 @@
     "out-tsc",
     "dist",
     "node_modules",
-    "jest.config.ts",
-    "jest.config.cts",
-    "src/**/*.spec.ts",
-    "src/**/*.test.ts",
     ".next",
     "eslint.config.js",
     "eslint.config.cjs",

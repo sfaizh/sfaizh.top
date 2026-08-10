@@ -14,7 +14,9 @@ export default [
         'error',
         {
           enforceBuildableLibDependency: true,
-          allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
+          // The Next app imports the NestJS app on purpose: `pages/api/v1`
+          // mounts it in-process so both halves ship as one deployment.
+          allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$', '@sfaizh/api'],
           depConstraints: [
             {
               sourceTag: '*',
@@ -36,7 +38,12 @@ export default [
       '**/*.cjs',
       '**/*.mjs',
     ],
-    // Override or add rules here
-    rules: {},
+    rules: {
+      // `const { markdown: _markdown, ...meta } = post` is a deliberate discard.
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
+    },
   },
 ];
