@@ -185,10 +185,9 @@ Because the API is compiled by SWC in that context, nothing in it relies on
 explicit `@Inject(...)`, and request payloads are validated by hand-written
 functions in `libs/shared/src/lib/validate.ts` rather than by `class-validator`.
 
-> **`apps/blog/.swcrc` is load-bearing.** It carries `legacyDecorator` and
-> `decoratorMetadata`, which the Nest code needs. Deleting it makes
-> `next build` fail during type checking. It looks like leftover scaffolding;
-> it is not.
+That choice is what lets the deploy build skip type checking (see below)
+without breaking dependency injection: Nest never has to read decorator
+metadata, so SWC never has to emit any.
 
 ### Where posts live
 
@@ -277,6 +276,31 @@ Everything is optional; each variable switches on one more capability. See
 
 The build command is `npm run build`, which regenerates the content bundle and
 then builds the Next app. Both halves of the site deploy as one project.
+
+### Two things that exist because of how Vercel builds
+
+Vercel runs the build **from inside `apps/blog`**, not from the repository
+root, and it does not reliably install root `devDependencies`. Two consequences
+are baked into the configuration, and both will look odd until you know why:
+
+- **`apps/blog/package.json` declares its own build toolchain** — `tailwindcss`,
+  `postcss`, `autoprefixer` and `typescript` sit in its `dependencies`, not in
+  the root's `devDependencies`. They are genuinely what this app needs in order
+  to build, and putting them here means the build works whether the install is
+  workspace-scoped or root-wide, pruned or not. npm workspaces hoists a single
+  copy, so nothing is duplicated on disk.
+- **`next build` does not type-check.** `typescript.ignoreBuildErrors` is on in
+  `next.config.js`. CI runs `npm run typecheck` over both projects on every push
+  and pull request; doing it a second time inside the deploy would drag every
+  dev-only `@types` package (`express`, `pako`, `turndown`, `jest`) into the
+  production dependency graph to satisfy a duplicate check. The trade is real:
+  a type error pushed straight to `main` can deploy before CI goes red. Watch
+  the CI badge, or set `ignoreBuildErrors: false` and promote those `@types`
+  packages if you would rather the deploy be the gate.
+
+`next.config.js` is also deliberately free of `@nx/next`'s `withNx` wrapper,
+for the same reason: it made the config file require a devDependency at build
+time. Nx still infers its targets from the file's presence.
 
 ---
 

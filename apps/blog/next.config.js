@@ -16,6 +16,14 @@ const { join } = require('path');
 const nextConfig = {
   reactStrictMode: true,
 
+  typescript: {
+    // Type checking is CI's job, not the deploy's — `npm run typecheck` runs
+    // both projects on every push and pull request. Doing it again here would
+    // drag every dev-only @types package (express, pako, turndown, jest) into
+    // the production dependency graph purely to satisfy a duplicate check.
+    ignoreBuildErrors: true,
+  },
+
   // The Nest app is imported from `apps/api/src`, which lives outside this
   // project's directory; tracing has to start at the workspace root so the
   // serverless bundle picks it up.
