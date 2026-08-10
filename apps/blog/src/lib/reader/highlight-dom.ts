@@ -15,6 +15,7 @@
 
 const ALL = 'reader-hit';
 const ACTIVE = 'reader-hit-active';
+const SELECTION = 'reader-visual';
 
 /** Older browsers simply get no highlight painting; `n`/`N` still navigate. */
 export function supportsHighlights(): boolean {
@@ -71,6 +72,13 @@ export function clearMatches(): void {
   if (!supportsHighlights()) return;
   CSS.highlights.delete(ALL);
   CSS.highlights.delete(ACTIVE);
+}
+
+/** Visual-mode selection. Passing null clears it. */
+export function paintSelection(range: Range | null): void {
+  if (!supportsHighlights()) return;
+  if (range && !range.collapsed) CSS.highlights.set(SELECTION, new Highlight(range));
+  else CSS.highlights.delete(SELECTION);
 }
 
 /** A match's offset inside the scroll container's content coordinates. */

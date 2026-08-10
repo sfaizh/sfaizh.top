@@ -9,6 +9,10 @@ export const PREFIX_TIMEOUT_MS = 1000;
 
 export type Motion =
   | { kind: 'line'; direction: 1 | -1 }
+  | { kind: 'char'; direction: 1 | -1 }
+  | { kind: 'word'; direction: 1 | -1 }
+  | { kind: 'word-end' }
+  | { kind: 'line-edge'; edge: 'start' | 'first-word' | 'end' }
   | { kind: 'half-page'; direction: 1 | -1 }
   | { kind: 'page'; direction: 1 | -1 }
   | { kind: 'edge'; edge: 'top' | 'bottom' }
@@ -19,6 +23,9 @@ export type Action =
   | { kind: 'motion'; motion: Motion; count: number }
   | { kind: 'search-open' }
   | { kind: 'command-open' }
+  | { kind: 'visual'; linewise: boolean }
+  | { kind: 'yank' }
+  | { kind: 'cancel' }
   | { kind: 'search-next'; direction: 1 | -1 }
   | { kind: 'help' }
   | { kind: 'quit' }
@@ -33,7 +40,7 @@ export interface PendingState {
 
 export const EMPTY_PENDING: PendingState = { count: '', prefix: null };
 
-const PREFIX_KEYS = new Set(['g', ']', '[']);
+const PREFIX_KEYS = new Set(['g', ']', '[', 'y']);
 
 /**
  * Feed one keypress to the machine. Returns the action to perform and the new
@@ -67,12 +74,15 @@ export function reduceKey(
     }
   }
 
-  // Digits accumulate into the count, except a leading 0 which means "column 0".
+  // Digits accumulate into the count, except a leading 0 which is the motion
+  // to the start of the line.
   if (/^[0-9]$/.test(key) && !(key === '0' && pending.count === '')) {
     return { action: { kind: 'none' }, pending: { count: pending.count + key, prefix } };
   }
 
   if (prefix?.key === 'g' && key === 'g') return motion({ kind: 'edge', edge: 'top' }, 1);
+  // `yy` yanks the current line; `y` on its own waits for it.
+  if (prefix?.key === 'y' && key === 'y') return { action: { kind: 'yank' }, pending: EMPTY_PENDING };
   if (prefix?.key === ']' && key === ']') return motion({ kind: 'heading', direction: 1 }, count);
   if (prefix?.key === '[' && key === '[') return motion({ kind: 'heading', direction: -1 }, count);
 
@@ -81,6 +91,28 @@ export function reduceKey(
   }
 
   switch (key) {
+    case 'h':
+    case 'ArrowLeft':
+      return motion({ kind: 'char', direction: -1 }, count);
+    case 'l':
+    case 'ArrowRight':
+      return motion({ kind: 'char', direction: 1 }, count);
+    case 'w':
+      return motion({ kind: 'word', direction: 1 }, count);
+    case 'b':
+      return motion({ kind: 'word', direction: -1 }, count);
+    case 'e':
+      return motion({ kind: 'word-end' }, count);
+    case '0':
+      return motion({ kind: 'line-edge', edge: 'start' }, 1);
+    case '^':
+      return motion({ kind: 'line-edge', edge: 'first-word' }, 1);
+    case '$':
+      return motion({ kind: 'line-edge', edge: 'end' }, 1);
+    case 'v':
+      return { action: { kind: 'visual', linewise: false }, pending: EMPTY_PENDING };
+    case 'V':
+      return { action: { kind: 'visual', linewise: true }, pending: EMPTY_PENDING };
     case 'j':
     case 'ArrowDown':
       return motion({ kind: 'line', direction: 1 }, count);
@@ -113,7 +145,9 @@ export function reduceKey(
       return { action: { kind: 'help' }, pending: EMPTY_PENDING };
     case 'q':
     case 'Escape':
-      return { action: { kind: 'quit' }, pending: EMPTY_PENDING };
+      // Cancel is contextual: the reader decides whether there is a search or a
+      // selection to drop before it falls through to leaving the post.
+      return { action: { kind: 'cancel' }, pending: EMPTY_PENDING };
     default:
       return { action: { kind: 'none' }, pending: EMPTY_PENDING };
   }
@@ -158,7 +192,8 @@ export function resolveScroll(
  * horizontal scrollbar on a narrow window.
  */
 export const READER_KEYS_ESSENTIAL = [
-  ['j / k', 'scroll'],
+  ['h j k l', 'move'],
+  ['w / b', 'word'],
   ['/', 'search'],
   ['?', 'keys'],
   [':q', 'back'],
@@ -166,7 +201,11 @@ export const READER_KEYS_ESSENTIAL = [
 
 /** The full map, shown in the `?` overlay. */
 export const READER_KEYS = [
+  ['h / l', 'character'],
   ['j / k', 'line'],
+  ['w / b', 'word forward / back'],
+  ['e', 'end of word'],
+  ['0 / ^ / $', 'line start / first word / end'],
   ['^D / ^U', 'half page'],
   ['^F / ^B', 'page'],
   ['gg / G', 'top / end'],
@@ -174,7 +213,9 @@ export const READER_KEYS = [
   ['[[ / ]]', 'heading'],
   ['/', 'search'],
   ['n / N', 'next / prev match'],
+  ['v / V', 'visual, visual line'],
+  ['y', 'yank selection (yy for a line)'],
   ['?', 'keys'],
+  ['q / Esc', 'cancel search or selection'],
   [':q', 'back to shell'],
-  ['q / Esc', 'back to shell'],
 ] as const;

@@ -21,6 +21,11 @@ const HIGHLIGHT_RULES = `
   background-color: var(--ctp-yellow);
   color: var(--ctp-crust);
 }
+
+::highlight(reader-visual) {
+  background-color: color-mix(in srgb, var(--ctp-mauve) 45%, transparent);
+  color: var(--ctp-text);
+}
 `;
 
 export function ThemeStyles() {

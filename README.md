@@ -110,22 +110,41 @@ suggestion ahead of the cursor, and a menu on the second `Tab`.
 
 ### Reader motions
 
+There is a real cursor, and it smears when it moves — an adaptation of
+[`smear-cursor.nvim`](https://github.com/sphamba/smear-cursor.nvim)'s "faster"
+preset. Like Vim, the view only scrolls when the cursor would otherwise leave
+it.
+
 | Key | Motion |
 | --- | --- |
+| `h` / `l` | One character |
 | `j` / `k` | One line |
+| `w` / `b` | Word forward / back |
+| `e` | End of word |
+| `0` / `^` / `$` | Line start / first word / line end |
 | `Ctrl-D` / `Ctrl-U` | Half a screen |
 | `Ctrl-F` / `Ctrl-B` | A full screen |
 | `gg` / `G` | Top / bottom |
 | `{` / `}` | Previous / next paragraph |
 | `[[` / `]]` | Previous / next heading |
 | `/`, then `n` / `N` | Search, next match, previous match |
+| `v` / `V` | Visual, visual line |
+| `y` | Yank the selection (`yy` for the current line) |
 | `?` | The full key map |
 | `:` | Command line — `:q`, `:quit`, `:help` |
-| `q` / `Esc` | Back to the shell |
+| `q` / `Esc` | Cancel the selection, then the search, then leave |
 
-Counts work: `10j`, `3}`. A pending count or prefix is shown in the statusline
-as you type it, and a stale `g` prefix expires after a second rather than
-teleporting you somewhere a minute later.
+Counts work: `10j`, `3w`, `3}`. A pending count or prefix is shown in the
+statusline as you type it, and a stale `g` prefix expires after a second rather
+than teleporting you somewhere a minute later.
+
+`q` and `Esc` are contextual, innermost first: they drop a visual selection,
+then clear a search, and only leave the post when there is nothing left to
+cancel. `y` copies to the system clipboard, which needs a secure context — it
+says so in the statusline if the browser refuses.
+
+There are no editing commands. The reader is read-only, so the operator half of
+the grammar (`d`, `c`, `x`, `p`) is deliberately absent.
 
 ### On a phone
 

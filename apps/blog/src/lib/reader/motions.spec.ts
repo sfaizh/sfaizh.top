@@ -108,17 +108,56 @@ describe('reduceKey', () => {
     expect(press(['{']).action).toMatchObject({ motion: { kind: 'paragraph', direction: -1 } });
   });
 
+  it('maps the horizontal motions', () => {
+    expect(press(['h']).action).toEqual({ kind: 'motion', motion: { kind: 'char', direction: -1 }, count: 1 });
+    expect(press(['l']).action).toEqual({ kind: 'motion', motion: { kind: 'char', direction: 1 }, count: 1 });
+    expect(press(['3', 'l']).action).toMatchObject({ count: 3 });
+  });
+
+  it('maps the word motions', () => {
+    expect(press(['w']).action).toEqual({ kind: 'motion', motion: { kind: 'word', direction: 1 }, count: 1 });
+    expect(press(['b']).action).toEqual({ kind: 'motion', motion: { kind: 'word', direction: -1 }, count: 1 });
+    expect(press(['e']).action).toEqual({ kind: 'motion', motion: { kind: 'word-end' }, count: 1 });
+    expect(press(['2', 'w']).action).toMatchObject({ count: 2 });
+  });
+
+  it('maps the line edges', () => {
+    expect(press(['0']).action).toMatchObject({ motion: { kind: 'line-edge', edge: 'start' } });
+    expect(press(['^']).action).toMatchObject({ motion: { kind: 'line-edge', edge: 'first-word' } });
+    expect(press(['$']).action).toMatchObject({ motion: { kind: 'line-edge', edge: 'end' } });
+  });
+
+  it('still treats a digit after a count as part of the count', () => {
+    // `10` is a count; a bare `0` is the motion to the start of the line.
+    expect(press(['1', '0', 'j']).action).toMatchObject({ count: 10 });
+  });
+
+  it('enters visual and visual-line mode', () => {
+    expect(press(['v']).action).toEqual({ kind: 'visual', linewise: false });
+    expect(press(['V']).action).toEqual({ kind: 'visual', linewise: true });
+  });
+
+  it('yanks on yy, and waits after a lone y', () => {
+    const first = reduceKey('y', NO_MODS, EMPTY_PENDING);
+    expect(first.action.kind).toBe('none');
+    expect(first.pending.prefix?.key).toBe('y');
+    expect(press(['y', 'y']).action).toEqual({ kind: 'yank' });
+  });
+
+  it('treats q and Escape as cancel, leaving the reader to decide what that means', () => {
+    expect(press(['q']).action).toEqual({ kind: 'cancel' });
+    expect(press(['Escape']).action).toEqual({ kind: 'cancel' });
+  });
+
   it('opens the command line on :', () => {
     expect(press([':']).action).toEqual({ kind: 'command-open' });
   });
 
-  it('maps search, help and quit', () => {
+  it('maps search and help', () => {
     expect(press(['/']).action).toEqual({ kind: 'search-open' });
     expect(press(['n']).action).toEqual({ kind: 'search-next', direction: 1 });
     expect(press(['N']).action).toEqual({ kind: 'search-next', direction: -1 });
     expect(press(['?']).action).toEqual({ kind: 'help' });
-    expect(press(['q']).action).toEqual({ kind: 'quit' });
-    expect(press(['Escape']).action).toEqual({ kind: 'quit' });
   });
 
   it('clears a pending count when an unmapped key arrives', () => {

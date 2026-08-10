@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RenderedPost } from '@sfaizh/shared';
 import { api } from '../../lib/api-client';
 import { usePrefersReducedMotion } from '../../lib/hooks';
-import { clearMatches, findMatches, paintMatches, rangeOffsetTop } from '../../lib/reader/highlight-dom';
+import { clearMatches, findMatches, paintMatches, paintSelection } from '../../lib/reader/highlight-dom';
 import {
   EMPTY_PENDING,
   READER_KEYS,
@@ -15,13 +15,24 @@ import {
   type PendingState,
 } from '../../lib/reader/motions';
 import {
-  clampIndex,
-  collectLineRects,
+  caretIndexFromPoint,
   cursorBlock,
-  nearestLineIndex,
+  hasVisibleRect,
+  rectForIndex,
   scrollToReveal,
+  viewportRectForIndex,
   type LineRect,
 } from '../../lib/reader/cursor';
+import {
+  buildTextMap,
+  clampToText,
+  flatIndexOf,
+  nextWordStart,
+  prevWordStart,
+  rangeBetween,
+  wordEnd,
+  type TextMap,
+} from '../../lib/reader/text-map';
 import { KeyLegend, StatusLine } from '../StatusLine';
 import { SmearCursor } from './SmearCursor';
 import { ReaderMobileBar } from '../terminal/MobileBar';
@@ -40,6 +51,53 @@ interface Props {
 
 type Mode = 'normal' | 'search' | 'command';
 
+const WHITESPACE = /\s/;
+
+/** Two positions share a visual line when their rectangles share a baseline. */
+function onSameLine(map: TextMap, a: number, b: number): boolean {
+  const first = viewportRectForIndex(map, a);
+  const second = viewportRectForIndex(map, b);
+  if (!first || !second) return false;
+  return Math.abs(first.top - second.top) < Math.min(first.height, second.height) * 0.6;
+}
+
+/**
+ * Hit-test one line away, widening the reach if the first attempt lands in the
+ * margin between two blocks rather than on text.
+ */
+function probeLine(map: TextMap, rect: DOMRect, direction: 1 | -1, step: number): number | null {
+  const middle = rect.top + rect.height / 2;
+  for (const distance of [step, step * 1.6, step * 2.4, step * 3.5]) {
+    const hit = caretIndexFromPoint(map, rect.left + 1, middle + direction * distance);
+    if (hit !== null) return hit;
+  }
+  return null;
+}
+
+/**
+ * Fallback for when hit-testing cannot reach the next line — across the margin
+ * below a heading, or past a figure. Walks the text until the baseline changes.
+ * Slower and it loses the column, but it works off-screen and over any gap,
+ * so `j` never simply stops.
+ */
+function scanToAdjacentLine(map: TextMap, index: number, direction: 1 | -1): number {
+  const from = viewportRectForIndex(map, index);
+  if (!from) return index;
+
+  const threshold = from.height * 0.6;
+  for (let step = 1; step <= 800; step++) {
+    const candidate = index + direction * step;
+    if (candidate < 0 || candidate >= map.text.length) break;
+
+    const rect = viewportRectForIndex(map, candidate);
+    if (!rect) continue;
+
+    const moved = direction === 1 ? rect.top - from.top : from.top - rect.top;
+    if (moved > threshold) return candidate;
+  }
+  return index;
+}
+
 export function Reader({ slug, onQuit, isTouch }: Props) {
   const reducedMotion = usePrefersReducedMotion();
 
@@ -56,13 +114,14 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
   const [percent, setPercent] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
 
-  const [lines, setLines] = useState<LineRect[]>([]);
-  const [cursorIndex, setCursorIndex] = useState(0);
+  const [cursor, setCursor] = useState(0);
+  const [cursorRect, setCursorRect] = useState<LineRect | null>(null);
+  const [visual, setVisual] = useState<{ anchor: number; linewise: boolean } | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const articleRef = useRef<HTMLElement>(null);
   const matchesRef = useRef<Range[]>([]);
-  const linesRef = useRef<LineRect[]>([]);
+  const mapRef = useRef<TextMap | null>(null);
 
   // ── load ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -143,68 +202,169 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
   }, []);
 
   /**
-   * The cursor indexes into the article's line boxes, so they have to be
-   * re-measured whenever the text could have reflowed: a new post, a resize, a
-   * late-loading font or image.
+   * The flat text map, rebuilt on every read.
+   *
+   * Caching it needs a staleness test, and there is no cheap one that is
+   * correct: React re-renders the body through `dangerouslySetInnerHTML`,
+   * replacing those text nodes, while the header and footer around it are
+   * ordinary JSX and stay put. Probing the first or last node therefore reports
+   * a healthy map whose entire middle is detached — motions past the header
+   * just stop. Walking ~200 text nodes costs microseconds, so it is rebuilt
+   * instead of second-guessed.
    */
-  const measureLines = useCallback(() => {
+  const textMap = useCallback((): TextMap | null => {
     const article = articleRef.current;
-    const container = scrollRef.current;
-    if (!article || !container) return;
+    if (!article) return null;
 
-    const measured = collectLineRects(article, container);
-    linesRef.current = measured;
-    setLines(measured);
-    setCursorIndex((index) => clampIndex(index, measured.length));
+    const fresh = buildTextMap(article);
+    mapRef.current = fresh;
+    return fresh;
   }, []);
 
-  useEffect(() => {
-    if (!post) return;
-
-    measureLines();
-    const container = scrollRef.current;
-    if (!container || typeof ResizeObserver === 'undefined') return;
-
-    const observer = new ResizeObserver(() => measureLines());
-    observer.observe(container);
-    if (articleRef.current) observer.observe(articleRef.current);
-
-    return () => observer.disconnect();
-  }, [post, measureLines]);
-
-  /** Put the cursor on a line and scroll only as far as needed to see it. */
+  /**
+   * Put the cursor at a text position and scroll only as far as needed.
+   *
+   * `bias` is the direction the motion was travelling, used to step over
+   * positions that render nothing — otherwise `l` at the end of a wrapped line
+   * lands on a collapsed newline and appears to do nothing at all.
+   */
   const moveCursorTo = useCallback(
-    (index: number, smooth: boolean) => {
+    (index: number, smooth: boolean, bias: 1 | -1 = 1) => {
+      const map = textMap();
       const container = scrollRef.current;
-      if (!container || lines.length === 0) return;
+      if (!map || !container) return;
 
-      const next = clampIndex(index, lines.length);
-      setCursorIndex(next);
+      let next = clampToText(map.text, index);
+      for (let guard = 0; guard < 12 && !hasVisibleRect(map, next); guard++) {
+        const candidate = clampToText(map.text, next + bias);
+        if (candidate === next) break;
+        next = candidate;
+      }
+      setCursor(next);
 
-      const target = scrollToReveal(lines[next], {
+      const rect = rectForIndex(map, next, container);
+      setCursorRect(rect);
+      if (!rect) return;
+
+      const target = scrollToReveal(rect, {
         scrollTop: container.scrollTop,
         clientHeight: container.clientHeight,
       });
       if (Math.abs(target - container.scrollTop) > 1) scrollTo(target, smooth);
     },
-    [lines, scrollTo]
+    [scrollTo, textMap]
+  );
+
+  /** Re-measure the cursor when the text reflows underneath it. */
+  const remeasure = useCallback(() => {
+    const map = textMap();
+    const container = scrollRef.current;
+    if (!map || !container) return;
+    setCursorRect(rectForIndex(map, cursor, container));
+  }, [cursor, textMap]);
+
+  useEffect(() => {
+    if (!post) return;
+
+    remeasure();
+    const container = scrollRef.current;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => remeasure());
+    observer.observe(container);
+    if (articleRef.current) observer.observe(articleRef.current);
+
+    return () => observer.disconnect();
+  }, [post, remeasure]);
+
+  /**
+   * "The character one line down" is a question only layout can answer in
+   * proportional text, so vertical motions hit-test rather than count. When the
+   * destination is off-screen there is nothing to hit, so the view is nudged
+   * first and the probe retried.
+   */
+  const stepVertical = useCallback(
+    (from: number, direction: 1 | -1, count: number): number => {
+      const map = textMap();
+      const container = scrollRef.current;
+      if (!map || !container) return from;
+
+      const step = lineHeight();
+      let index = from;
+
+      for (let taken = 0; taken < count; taken++) {
+        let rect = viewportRectForIndex(map, index);
+        if (!rect) break;
+
+        let probe = probeLine(map, rect, direction, step);
+
+        if (probe === null || probe === index) {
+          // Either the destination is outside the viewport, or the probe landed
+          // in the margin between two blocks. Nudge the view and try again.
+          container.scrollTop = Math.max(0, container.scrollTop + direction * step);
+          rect = viewportRectForIndex(map, index);
+          if (!rect) break;
+          probe = probeLine(map, rect, direction, step);
+        }
+
+        if (probe === null || probe === index) probe = scanToAdjacentLine(map, index, direction);
+        if (probe === index) break;
+        index = probe;
+      }
+
+      return index;
+    },
+    [lineHeight, textMap]
+  );
+
+  /** `0`, `^` and `$` — the ends of the *visual* line, wrapping included. */
+  const lineEdgeFrom = useCallback(
+    (from: number, edge: 'start' | 'first-word' | 'end'): number => {
+      const map = textMap();
+      const article = articleRef.current;
+      if (!map || !article) return from;
+
+      const rect = viewportRectForIndex(map, from);
+      if (!rect) return from;
+
+      const bounds = article.getBoundingClientRect();
+      const middle = rect.top + rect.height / 2;
+      const probe =
+        edge === 'end'
+          ? caretIndexFromPoint(map, bounds.right - 2, middle)
+          : caretIndexFromPoint(map, bounds.left + 2, middle);
+
+      if (probe === null) return from;
+
+      if (edge === 'end') {
+        // Hit-testing past the last glyph resolves to the *next* line's first
+        // character, so walk back until we are on the line we started on.
+        let index = probe;
+        while (index > from && !onSameLine(map, from, index)) index--;
+        return index;
+      }
+
+      if (edge !== 'first-word') return probe;
+
+      let index = probe;
+      while (index < map.text.length - 1 && WHITESPACE.test(map.text[index])) index++;
+      return index;
+    },
+    [textMap]
   );
 
 
-  /** Put the cursor on the line holding a search match, and show it. */
+  /** Put the cursor on a search match and bring it into view. */
   const revealMatch = useCallback(
     (range: Range) => {
-      const container = scrollRef.current;
-      if (!container) return;
+      const map = textMap();
+      if (!map) return;
 
-      const top = rangeOffsetTop(range, container);
-      if (lines.length === 0) {
-        scrollTo(top - container.clientHeight / 3, true);
-        return;
-      }
-      moveCursorTo(nearestLineIndex(lines, top), true);
+      const index = flatIndexOf(map, range.startContainer, range.startOffset);
+      if (index === null) return;
+      moveCursorTo(index, true);
     },
-    [lines, moveCursorTo, scrollTo]
+    [moveCursorTo, textMap]
   );
 
   /** Scroll so that the nth element matching `selector` sits near the top. */
@@ -231,9 +391,11 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
       }
 
       scrollTo(offsets[index] - 12, true);
-      setCursorIndex((current) =>
-        linesRef.current.length ? nearestLineIndex(linesRef.current, offsets[index] + 8) : current
-      );
+
+      const map = mapRef.current;
+      const first = targets[index].firstChild;
+      const at = map && first ? flatIndexOf(map, first, 0) : null;
+      if (at !== null) setCursor(at);
     },
     [scrollTo]
   );
@@ -305,6 +467,7 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
   useEffect(() => {
     return () => {
       clearMatches();
+      paintSelection(null);
       matchesRef.current = [];
     };
   }, [slug]);
@@ -339,6 +502,57 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
     const timer = window.setTimeout(() => setNotice(null), 6000);
     return () => window.clearTimeout(timer);
   }, [notice]);
+
+  /**
+   * The selected text, expanded to whole visual lines in linewise mode. In
+   * normal mode `yy` yanks the line the cursor is on.
+   */
+  const selectionRange = useCallback((): Range | null => {
+    const map = textMap();
+    if (!map) return null;
+
+    const anchor = visual ? visual.anchor : cursor;
+    const linewise = visual ? visual.linewise : true;
+
+    let from = Math.min(anchor, cursor);
+    let to = Math.max(anchor, cursor);
+
+    if (linewise) {
+      from = lineEdgeFrom(from, 'start');
+      to = lineEdgeFrom(to, 'end');
+    }
+
+    return rangeBetween(map, from, Math.min(to + 1, map.text.length));
+  }, [cursor, lineEdgeFrom, textMap, visual]);
+
+  /** Copy the selection and report what happened, the way Vim does. */
+  const yankSelection = useCallback(async () => {
+    const range = selectionRange();
+    const text = range?.toString() ?? '';
+
+    if (!text) {
+      setNotice('Nothing to yank');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      const words = text.trim().split(/\s+/).filter(Boolean).length;
+      setNotice(`Yanked ${text.length} characters (${words} words)`);
+    } catch {
+      // Clipboard access needs a secure context and, in some browsers, a
+      // gesture. Say so rather than failing silently.
+      setNotice('Could not reach the clipboard');
+    }
+    setVisual(null);
+  }, [selectionRange]);
+
+  // Repaint the selection after every commit, for the same reason the search
+  // highlights are: a Range held across a React re-render of the article
+  // collapses silently, so it is rebuilt rather than remembered.
+  useEffect(() => {
+    paintSelection(visual ? selectionRange() : null);
+  });
 
   // ── keyboard ──────────────────────────────────────────────────────────────
   const onKeyDown = useCallback(
@@ -397,6 +611,14 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
       if (event.metaKey || event.altKey) return;
       if (event.ctrlKey && !['d', 'u', 'f', 'b'].includes(event.key.toLowerCase())) return;
 
+      // In visual mode a single `y` yanks the selection; the reducer only knows
+      // about `yy`, which is the normal-mode form.
+      if (visual && event.key === 'y') {
+        event.preventDefault();
+        void yankSelection();
+        return;
+      }
+
       const { action, pending: nextPending } = reduceKey(
         event.key,
         { ctrl: event.ctrlKey, shift: event.shiftKey },
@@ -411,9 +633,34 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
       event.preventDefault();
 
       switch (action.kind) {
-        case 'quit':
+        case 'cancel': {
+          // Contextual, innermost first: drop a selection, then a search, and
+          // only leave the post when there is nothing left to cancel.
+          if (visual) {
+            setVisual(null);
+            return;
+          }
+          if (committedQuery) {
+            setCommittedQuery('');
+            setQuery('');
+            setMatchCount(0);
+            setMatchIndex(0);
+            clearMatches();
+            return;
+          }
           onQuit();
           return;
+        }
+        case 'visual': {
+          setVisual((current) =>
+            current && current.linewise === action.linewise ? null : { anchor: cursor, linewise: action.linewise }
+          );
+          return;
+        }
+        case 'yank': {
+          void yankSelection();
+          return;
+        }
         case 'help':
           setShowHelp(true);
           return;
@@ -432,6 +679,7 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
           return;
         case 'motion': {
           const node = scrollRef.current;
+          const map = textMap();
           if (!node) return;
           const motion = action.motion;
 
@@ -444,9 +692,9 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
             return;
           }
 
-          // Before the line boxes have been measured there is no cursor to
-          // move, so fall back to scrolling the view outright.
-          if (lines.length === 0) {
+          // Without a measurable text map there is no cursor to move, so fall
+          // back to scrolling the view outright.
+          if (!map || map.text.length === 0) {
             scrollTo(
               resolveScroll(motion, action.count, {
                 scrollTop: node.scrollTop,
@@ -459,33 +707,55 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
             return;
           }
 
-          if (motion.kind === 'edge') {
-            moveCursorTo(motion.edge === 'top' ? 0 : lines.length - 1, true);
-            return;
+          switch (motion.kind) {
+            case 'char':
+              moveCursorTo(cursor + motion.direction * action.count, false, motion.direction);
+              return;
+            case 'word':
+              moveCursorTo(
+                motion.direction === 1
+                  ? nextWordStart(map.text, cursor, action.count)
+                  : prevWordStart(map.text, cursor, action.count),
+                false,
+                motion.direction
+              );
+              return;
+            case 'word-end':
+              moveCursorTo(wordEnd(map.text, cursor, action.count), false);
+              return;
+            case 'line-edge':
+              moveCursorTo(lineEdgeFrom(cursor, motion.edge), false);
+              return;
+            case 'edge':
+              moveCursorTo(motion.edge === 'top' ? 0 : map.text.length - 1, true);
+              return;
+            case 'line':
+              moveCursorTo(stepVertical(cursor, motion.direction, action.count), false);
+              return;
+            default: {
+              // Half and full pages, measured in lines of the current view.
+              const perScreen = Math.max(1, Math.round(node.clientHeight / Math.max(1, lineHeight())));
+              const rows =
+                motion.kind === 'half-page' ? Math.max(1, Math.floor(perScreen / 2)) : Math.max(1, perScreen - 2);
+              moveCursorTo(stepVertical(cursor, motion.direction, rows * action.count), true);
+              return;
+            }
           }
-
-          const perScreen = Math.max(1, Math.round(node.clientHeight / Math.max(1, lineHeight())));
-          const step =
-            motion.kind === 'line'
-              ? 1
-              : motion.kind === 'half-page'
-                ? Math.max(1, Math.floor(perScreen / 2))
-                : Math.max(1, perScreen - 2);
-
-          // Single-line moves stay instant; jumps get eased.
-          moveCursorTo(cursorIndex + motion.direction * step * action.count, motion.kind !== 'line');
-          return;
         }
       }
     },
     [
       command,
       committedQuery,
-      cursorIndex,
+      cursor,
       jumpToElement,
+      lineEdgeFrom,
       lineHeight,
-      lines,
       moveCursorTo,
+      stepVertical,
+      textMap,
+      visual,
+      yankSelection,
       mode,
       notice,
       onQuit,
@@ -538,7 +808,7 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
 
         {post && !isTouch && (
           <SmearCursor
-            block={lines.length ? cursorBlock(lines[clampIndex(cursorIndex, lines.length)]) : null}
+            block={cursorRect ? cursorBlock(cursorRect) : null}
             animated={!reducedMotion}
           />
         )}
@@ -597,8 +867,17 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
 
       <StatusLine
         mode={{
-          label: mode === 'search' ? 'SEARCH' : mode === 'command' ? 'COMMAND' : 'NORMAL',
-          tone: mode === 'normal' ? 'mauve' : 'peach',
+          label:
+            mode === 'search'
+              ? 'SEARCH'
+              : mode === 'command'
+                ? 'COMMAND'
+                : visual
+                  ? visual.linewise
+                    ? 'V-LINE'
+                    : 'VISUAL'
+                  : 'NORMAL',
+          tone: mode === 'normal' ? (visual ? 'blue' : 'mauve') : 'peach',
         }}
         left={[
           { label: post ? `${post.slug}.md` : `${slug}.md`, title: post?.title },

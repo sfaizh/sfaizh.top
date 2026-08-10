@@ -1,6 +1,6 @@
 import { CATPPUCCIN_FLAVOURS, isFlavour, type PostMeta } from '@sfaizh/shared';
 import { api } from '../api-client';
-import { blank, dim, error, line, paragraph, seg, table, text, type Line, type Segment } from './output';
+import { blank, dim, error, line, paragraph, seg, table, text, type Colour, type Line, type Segment } from './output';
 import { failure, success, type Command, type CommandContext, type ShellState } from './types';
 import { HOME, POSTS_DIR, humanSize, isDirectory, resolvePath, shortDate, type VFile } from './vfs';
 
@@ -621,17 +621,22 @@ export function commandNames(): string[] {
 }
 
 export function bannerLines(): Line[] {
+  // figlet "Standard", reading SFH v1.0
+  const art = [
+    ' ____  _____ _   _        _   ___  ',
+    '/ ___||  ___| | | |__   _/ | / _ \\ ',
+    '\\___ \\| |_  | |_| |\\ \\ / / || | | |',
+    ' ___) |  _| |  _  | \\ V /| || |_| |',
+    '|____/|_|   |_| |_|  \\_/ |_(_)___/ ',
+  ];
+  const tints: Colour[] = ['mauve', 'mauve', 'pink', 'pink', 'rosewater'];
+
   return [
-    [seg('   ▄▄▄· ▄▄▄· ▪   ·▄▄▄▄•', { colour: 'mauve' })],
-    [seg('  ▐█ ▀█ ▐█ ▀█ ██  ▪▀·.█▌', { colour: 'mauve' })],
-    [seg('  ▄█▀▀█ ▄█▀▀█ ▐█· ▄█▀▀▀•', { colour: 'pink' })],
-    [seg('  ▐█ ▪▐▌▐█ ▪▐▌▐█▌ █▌▪▄█▀', { colour: 'pink' })],
-    [seg('   ▀  ▀  ▀  ▀ ▀▀▀ ·▀▀▀ ·', { colour: 'rosewater' })],
+    ...art.map((row, index) => [seg(row, { colour: tints[index] })]),
     blank(),
     [
       seg('sfaizh.top', { colour: 'green', bold: true }),
-      seg(' · engineering blog · ', { colour: 'overlay1' }),
-      seg('sfsh 1.0', { colour: 'teal' }),
+      seg(' · engineering blog', { colour: 'overlay1' }),
     ],
     blank(),
     [

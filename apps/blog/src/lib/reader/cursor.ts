@@ -1,13 +1,15 @@
+import { clampToText, flatIndexOf, rangeBetween, type TextMap } from './text-map';
+
 /**
  * A cursor for prose.
  *
- * Vim has a cursor because it has lines. A rendered article has *line boxes* —
- * the rectangles the browser lays text out into — so the cursor here is an
- * index into those. `j` and `k` move between them, and the view only scrolls
- * when the cursor would leave it, which is how Vim actually behaves.
+ * The cursor is an index into the article's flattened text (see `text-map`),
+ * which is what makes `h`, `w` and yanking expressible. This module turns that
+ * index into pixels — and pixels back into an index for vertical motions — and
+ * holds the smear physics.
  *
- * Kept free of React and of the DOM where possible so the geometry and the
- * smear physics can be unit-tested.
+ * The view only scrolls when the cursor would leave it, which is how Vim
+ * actually behaves.
  */
 
 export interface LineRect {
@@ -56,93 +58,6 @@ export function settled(head: Point, tail: Point, target: Point, threshold: numb
   );
 }
 
-/**
- * Every line box in the article, in reading order, in the scroll container's
- * content coordinates so they survive scrolling.
- */
-export function collectLineRects(article: HTMLElement, container: HTMLElement): LineRect[] {
-  const base = container.getBoundingClientRect();
-  const offsetY = container.scrollTop - base.top;
-  const offsetX = container.scrollLeft - base.left;
-
-  const walker = document.createTreeWalker(article, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      return node.nodeValue && node.nodeValue.trim().length > 0
-        ? NodeFilter.FILTER_ACCEPT
-        : NodeFilter.FILTER_REJECT;
-    },
-  });
-
-  const range = document.createRange();
-  const rects: LineRect[] = [];
-
-  // Environments without layout (jsdom, and any server-side pass) cannot
-  // measure line boxes. Returning nothing is correct: the reader falls back to
-  // scrolling the view rather than moving a cursor it cannot place.
-  if (typeof range.getClientRects !== 'function') return [];
-
-  while (walker.nextNode()) {
-    range.selectNodeContents(walker.currentNode);
-    for (const rect of Array.from(range.getClientRects())) {
-      // Zero-area rects come from collapsed whitespace and empty inlines.
-      if (rect.width < 1 || rect.height < 1) continue;
-      rects.push({
-        x: rect.left + offsetX,
-        y: rect.top + offsetY,
-        width: rect.width,
-        height: rect.height,
-      });
-    }
-  }
-
-  return dedupeLines(rects);
-}
-
-/**
- * Text nodes are split by inline markup, so a single visual line can produce
- * several rects. Merge the ones that sit on the same baseline.
- */
-function dedupeLines(rects: LineRect[]): LineRect[] {
-  const sorted = [...rects].sort((a, b) => a.y - b.y || a.x - b.x);
-  const merged: LineRect[] = [];
-
-  for (const rect of sorted) {
-    const previous = merged[merged.length - 1];
-    const sameLine = previous && Math.abs(rect.y - previous.y) < Math.min(rect.height, previous.height) * 0.6;
-
-    if (!sameLine) {
-      merged.push({ ...rect });
-      continue;
-    }
-    // Extend the existing line to cover this fragment.
-    const right = Math.max(previous.x + previous.width, rect.x + rect.width);
-    previous.x = Math.min(previous.x, rect.x);
-    previous.width = right - previous.x;
-    previous.height = Math.max(previous.height, rect.height);
-    previous.y = Math.min(previous.y, rect.y);
-  }
-
-  return merged;
-}
-
-/** The line closest to a content-space y offset. */
-export function nearestLineIndex(rects: LineRect[], y: number): number {
-  if (rects.length === 0) return 0;
-
-  let best = 0;
-  let bestDistance = Number.POSITIVE_INFINITY;
-
-  for (let index = 0; index < rects.length; index++) {
-    const centre = rects[index].y + rects[index].height / 2;
-    const distance = Math.abs(centre - y);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = index;
-    }
-  }
-
-  return best;
-}
 
 export function clampIndex(index: number, length: number): number {
   if (length === 0) return 0;
@@ -167,12 +82,97 @@ export function scrollToReveal(
   return view.scrollTop;
 }
 
-/** The cursor block: a slab at the start of the line, like Vim's on column 0. */
+/** The cursor block: covers the character it sits on, as Vim's does. */
 export function cursorBlock(rect: LineRect): LineRect {
   return {
     x: rect.x,
     y: rect.y,
-    width: Math.max(7, Math.round(rect.height * 0.45)),
+    width: Math.max(7, Math.round(rect.width)),
     height: rect.height,
   };
+}
+
+/**
+ * The rectangle of the character at `index`, in the container's content
+ * coordinates. Returns null where the position cannot be measured — at a node
+ * boundary, or in an environment without layout.
+ */
+export function rectForIndex(map: TextMap, index: number, container: HTMLElement): LineRect | null {
+  const clamped = clampToText(map.text, index);
+  let range = rangeBetween(map, clamped, clamped + 1);
+  if (!range || typeof range.getBoundingClientRect !== 'function') return null;
+
+  let rect = range.getBoundingClientRect();
+  if (rect.height === 0 && clamped > 0) {
+    // Zero-height happens between nodes; the preceding character still tells
+    // us which line we are on.
+    range = rangeBetween(map, clamped - 1, clamped);
+    if (range) rect = range.getBoundingClientRect();
+  }
+  if (rect.height === 0) return null;
+
+  const base = container.getBoundingClientRect();
+  return {
+    x: rect.left - base.left + container.scrollLeft,
+    y: rect.top - base.top + container.scrollTop,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+/**
+ * Whether the character at `index` renders a box of its own.
+ *
+ * A newline inside a paragraph is drawn as a space, except at a line wrap where
+ * it collapses to nothing. A cursor there would be invisible and the motion
+ * that put it there would look like it did nothing, so motions skip over these.
+ */
+export function hasVisibleRect(map: TextMap, index: number): boolean {
+  const range = rangeBetween(map, index, index + 1);
+  if (!range || typeof range.getBoundingClientRect !== 'function') return true;
+
+  const rect = range.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
+/** The same rectangle, left in viewport coordinates for hit-testing. */
+export function viewportRectForIndex(map: TextMap, index: number): DOMRect | null {
+  const clamped = clampToText(map.text, index);
+  const range = rangeBetween(map, clamped, clamped + 1);
+  if (!range || typeof range.getBoundingClientRect !== 'function') return null;
+
+  const rect = range.getBoundingClientRect();
+  return rect.height === 0 ? null : rect;
+}
+
+/**
+ * Which text position sits under a point. Vertical motions go through this
+ * rather than arithmetic: proportional text has no columns, so "the character
+ * below this one" is a question only layout can answer.
+ */
+export function caretIndexFromPoint(map: TextMap, x: number, y: number): number | null {
+  const owner = document as Document & {
+    caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
+    caretRangeFromPoint?: (x: number, y: number) => Range | null;
+  };
+
+  let node: Node | null = null;
+  let offset = 0;
+
+  if (typeof owner.caretPositionFromPoint === 'function') {
+    const position = owner.caretPositionFromPoint(x, y);
+    if (position) {
+      node = position.offsetNode;
+      offset = position.offset;
+    }
+  } else if (typeof owner.caretRangeFromPoint === 'function') {
+    const range = owner.caretRangeFromPoint(x, y);
+    if (range) {
+      node = range.startContainer;
+      offset = range.startOffset;
+    }
+  }
+
+  if (!node || node.nodeType !== Node.TEXT_NODE) return null;
+  return flatIndexOf(map, node, offset);
 }

@@ -3,7 +3,6 @@ import {
   advance,
   clampIndex,
   cursorBlock,
-  nearestLineIndex,
   scrollToReveal,
   settled,
   type LineRect,
@@ -46,23 +45,6 @@ describe('settled', () => {
 
   it('is false while the tail is still catching up', () => {
     expect(settled({ x: 100, y: 200 }, { x: 100, y: 180 }, target, 0.5)).toBe(false);
-  });
-});
-
-describe('nearestLineIndex', () => {
-  const lines = [line(0), line(20), line(40), line(60)];
-
-  it('finds the line containing a position', () => {
-    expect(nearestLineIndex(lines, 45)).toBe(2);
-  });
-
-  it('clamps to the ends', () => {
-    expect(nearestLineIndex(lines, -500)).toBe(0);
-    expect(nearestLineIndex(lines, 5000)).toBe(3);
-  });
-
-  it('copes with no lines at all', () => {
-    expect(nearestLineIndex([], 100)).toBe(0);
   });
 });
 

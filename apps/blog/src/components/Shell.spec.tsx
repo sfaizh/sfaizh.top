@@ -38,7 +38,7 @@ async function renderShell() {
 
   render(<Shell />);
   // The banner is printed by an effect once the shell takes over.
-  await screen.findByText(/sfsh 1.0/);
+  await screen.findByText(/· engineering blog/);
   return screen.getByLabelText('Terminal input') as HTMLInputElement;
 }
 
@@ -80,7 +80,7 @@ describe('Shell', () => {
     await run(input, 'posts');
     await run(input, 'clear');
 
-    await waitFor(() => expect(screen.queryByText(/sfsh 1.0/)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(/· engineering blog/)).toBeNull());
     expect(screen.queryByText('building-a-terminal-blog')).toBeNull();
   });
 
