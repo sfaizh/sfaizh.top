@@ -23,7 +23,7 @@
     "e2e": "playwright test -c apps/blog-e2e/playwright.config.ts",
     "e2e:serve": "next start apps/blog -p 3000",
     "admin:hash": "node tools/scripts/hash-password.mjs",
-    "db:seed": "node -r ts-node/register/transpile-only -r tsconfig-paths/register tools/scripts/seed-supabase.ts",
+    "db:seed": "TS_NODE_PROJECT=tools/scripts/tsconfig.json node --env-file=.env -r ts-node/register/transpile-only -r tsconfig-paths/register tools/scripts/seed-supabase.ts",
     "verify": "npm run content:build && npm run typecheck && npm run test && npm run build"
   },
   "devDependencies": {
