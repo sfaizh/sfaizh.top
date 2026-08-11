@@ -39,6 +39,12 @@ export function Editor({
   const uploadRef = useRef(onUploadFiles);
   uploadRef.current = onUploadFiles;
 
+  // Tracks the last html the editor itself produced, so the "load different
+  // post" effect below can distinguish "parent echoed back what I just typed"
+  // from "parent loaded a new post" — without this, every keystroke triggers
+  // setContent and jumps the cursor to the end.
+  const lastLoaded = useRef(initialHtml);
+
   const editor = useEditor({
     // Rendering on the server would produce markup React then disagrees with.
     immediatelyRender: false,
@@ -76,7 +82,11 @@ export function Editor({
         return true;
       },
     },
-    onUpdate: ({ editor: instance }) => onChange(instance.getHTML()),
+    onUpdate: ({ editor: instance }) => {
+      const html = instance.getHTML();
+      lastLoaded.current = html;
+      onChange(html);
+    },
   });
 
   useEffect(() => {
@@ -84,7 +94,6 @@ export function Editor({
   }, [editor, onReady]);
 
   // Replacing the document when a different post is selected.
-  const lastLoaded = useRef(initialHtml);
   useEffect(() => {
     if (!editor || initialHtml === lastLoaded.current) return;
     lastLoaded.current = initialHtml;

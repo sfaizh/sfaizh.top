@@ -41,7 +41,7 @@ test.describe('touch devices', () => {
     await bootedPage(page);
     await quickCommand(page, 'posts').tap();
 
-    await expect(page.getByText('building-a-terminal-blog').first()).toBeVisible();
+    await expect(page.getByText('vim-motions-as-a-design-language').first()).toBeVisible();
   });
 
   test('opens a post with reader controls, and closes again', async ({ page }) => {

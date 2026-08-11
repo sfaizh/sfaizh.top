@@ -64,7 +64,7 @@ describe('GET /posts', () => {
     for (const post of response.body) expect(post.tags).toContain('vim');
 
     expect(slugs).toContain('vim-motions-as-a-design-language');
-    expect(slugs).not.toContain('building-a-terminal-blog');
+    expect(slugs).not.toContain('from-sydney-to-karachi-in-40-hours');
   });
 
   it('returns an empty list for an unknown tag', async () => {

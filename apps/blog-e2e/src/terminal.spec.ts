@@ -27,8 +27,8 @@ async function run(page: Page, command: string) {
 
 /** Opens a post and returns the reader surface, focused and ready for keys. */
 async function openPost(page: Page) {
-  await run(page, 'open building-a-terminal-blog');
-  await expect(page.getByRole('heading', { name: 'Building a terminal-shaped blog' })).toBeVisible();
+  await run(page, 'open vim-motions-as-a-design-language');
+  await expect(page.getByRole('heading', { name: 'Vim motions as a design language' })).toBeVisible();
 
   // Address the surface by its accessible name: a bare `getByRole('document')`
   // can resolve to the document root rather than this container. Focus it
@@ -61,8 +61,8 @@ test.describe('the terminal', () => {
     await bootedPage(page);
     await run(page, 'posts');
 
-    await expect(page.getByText('building-a-terminal-blog').first()).toBeVisible();
     await expect(page.getByText('vim-motions-as-a-design-language').first()).toBeVisible();
+    await expect(page.getByText('blazingly-fast-workflows-with-alacritty-nvim').first()).toBeVisible();
   });
 
   test('reports an unknown command like a shell does', async ({ page }) => {
@@ -87,8 +87,8 @@ test.describe('the reader', () => {
     await openPost(page);
 
     await expect(page.getByRole('status').filter({ hasText: 'NORMAL' })).toBeVisible();
-    await expect(page.getByText('building-a-terminal-blog.md')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'The three surfaces' })).toBeVisible();
+    await expect(page.getByText('vim-motions-as-a-design-language.md')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Verbs, nouns and counts' })).toBeVisible();
   });
 
   test('returns to the shell on q', async ({ page }) => {
