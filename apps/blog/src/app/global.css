@@ -454,6 +454,12 @@ body {
   border: 1px solid var(--ctp-surface0);
   background: var(--ctp-mantle);
   display: block;
+
+  /* Promote each image to its own compositor layer so the GPU keeps the
+     texture resident during scroll. Without this, mobile browsers discard
+     image tiles as they leave the viewport and repaint them on the way back,
+     which shows as a momentary blank flash. */
+  will-change: transform;
 }
 .prose-reader figcaption {
   margin-top: 0.6em;
