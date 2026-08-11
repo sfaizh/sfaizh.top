@@ -7,6 +7,7 @@ const push = jest.fn();
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push, replace: jest.fn(), refresh: jest.fn() }),
+  usePathname: () => '/',
 }));
 
 jest.mock('../lib/api-client', () => ({
