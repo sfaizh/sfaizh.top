@@ -140,13 +140,13 @@ test.describe('the reader', () => {
     await page.getByLabel('Search within the post').press('Enter');
 
     const status = page.getByRole('status');
-    await expect(status).toContainText('1/2');
+    await expect(status).toContainText('1/3');
 
     await page.keyboard.press('n');
-    await expect(status).toContainText('2/2');
+    await expect(status).toContainText('2/3');
 
     await page.keyboard.press('N');
-    await expect(status).toContainText('1/2');
+    await expect(status).toContainText('1/3');
   });
 
   test('moves the cursor with the word motions', async ({ page }) => {
@@ -197,11 +197,11 @@ test.describe('the reader', () => {
     await page.getByLabel('Search within the post').press('Enter');
 
     const status = page.getByRole('status');
-    await expect(status).toContainText('1/2');
+    await expect(status).toContainText('1/3');
 
     // The first q drops the search but stays in the reader...
     await page.keyboard.press('q');
-    await expect(status).not.toContainText('1/2');
+    await expect(status).not.toContainText('1/3');
     await expect(page.getByRole('document', { name: /reader/ })).toBeVisible();
 
     // ...and only the second leaves.

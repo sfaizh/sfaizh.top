@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { STORAGE_KEYS, type PostMeta, type SiteStats } from '@sfaizh/shared';
 import { api } from '../lib/api-client';
 import { useClock, useFlavour, useIsTouch, useMotion } from '../lib/hooks';
@@ -40,6 +40,7 @@ const SHELL_KEYS = [
  */
 export function Shell() {
   const router = useRouter();
+  const pathname = usePathname();
   const isTouch = useIsTouch();
   const { reduced: reducedMotion, preference: motion, setPreference: setMotion } = useMotion();
   const clock = useClock();
@@ -81,6 +82,20 @@ export function Shell() {
       })
       .catch((cause: Error) => setLoadError(cause.message));
   }, []);
+
+  // Deep-link: if the page loaded at /posts/<slug>, open that post once and
+  // skip the boot animation. The ref prevents re-opening if posts re-fetches.
+  const deepLinkConsumed = useRef(false);
+  useEffect(() => {
+    if (deepLinkConsumed.current || !pathname) return;
+    const match = pathname.match(/^\/posts\/([^/]+)$/);
+    if (!match) return;
+    const slug = match[1];
+    deepLinkConsumed.current = true;
+    writeLocal(STORAGE_KEYS.booted, '1');
+    setMode('reader');
+    setReaderSlug(slug);
+  }, [pathname]);
 
   const fs = useMemo(() => buildFilesystem(posts), [posts]);
 
@@ -137,6 +152,7 @@ export function Shell() {
           case 'open':
             setReaderSlug(effect.slug);
             setMode('reader');
+            router.replace(`/posts/${effect.slug}`);
             break;
           case 'navigate':
             router.push(effect.href);
@@ -201,13 +217,14 @@ export function Shell() {
   const quitReader = useCallback(() => {
     setMode('shell');
     setReaderSlug(null);
-  }, []);
+    router.replace('/');
+  }, [router]);
 
   // ── render ────────────────────────────────────────────────────────────────
   const promptPath = cwd.replace(HOME, '~');
 
   return (
-    <div className={`flex h-[100dvh] w-full flex-col overflow-hidden ${reducedMotion ? '' : 'crt'}`}>
+    <div className={`flex h-[100dvh] w-full flex-col overflow-hidden ${reducedMotion || isTouch ? '' : 'crt'}`}>
       <a href="#terminal-surface" className="skip-link">
         Skip to the terminal
       </a>
