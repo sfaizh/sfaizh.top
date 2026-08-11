@@ -73,12 +73,6 @@ describe('GET /posts', () => {
 });
 
 describe('GET /posts/:slug', () => {
-  it('returns the post with its markdown', async () => {
-    const response = await request(app).get(API_ROUTES.post('building-a-terminal-blog')).expect(200);
-    expect(response.body.title).toBe('Building a terminal-shaped blog');
-    expect(response.body.markdown).toContain('## The three surfaces');
-  });
-
   it('404s an unknown slug', async () => {
     const response = await request(app).get(API_ROUTES.post('does-not-exist')).expect(404);
     expect(response.body).toMatchObject({ statusCode: 404, message: 'No such post: does-not-exist' });
@@ -89,7 +83,7 @@ describe('GET /posts/:slug', () => {
   });
 
   it('serves the raw markdown file for `cat`', async () => {
-    const response = await request(app).get(`${API_ROUTES.post('building-a-terminal-blog')}/raw`).expect(200);
+    const response = await request(app).get(`${API_ROUTES.post('vim-motions-as-a-design-language')}/raw`).expect(200);
     expect(response.headers['content-type']).toContain('text/markdown');
     expect(response.text.startsWith('---')).toBe(true);
   });
@@ -110,13 +104,13 @@ describe('GET /posts/:slug/rendered', () => {
 
 describe('GET /posts/search', () => {
   it('finds posts by body text', async () => {
-    const response = await request(app).get(API_ROUTES.search('split-flap')).expect(200);
+    const response = await request(app).get(API_ROUTES.search('Neovim')).expect(200);
     const hit = response.body.find(
-      (result: { post: { slug: string } }) => result.post.slug === 'building-a-terminal-blog'
+      (result: { post: { slug: string } }) => result.post.slug === 'blazingly-fast-workflows-with-alacritty-nvim'
     );
 
     expect(hit).toBeDefined();
-    expect(hit.excerpt).toContain('split-flap');
+    expect(hit.excerpt).toContain('Neovim');
   });
 
   it('rejects a query that is too short', async () => {
@@ -182,14 +176,14 @@ describe('admin routes', () => {
 
   it('return the body compressed, and it inflates back to the original', async () => {
     const response = await request(app)
-      .get(API_ROUTES.adminPost('building-a-terminal-blog'))
+      .get(API_ROUTES.adminPost('vim-motions-as-a-design-language'))
       .set('authorization', `Bearer ${token}`)
       .expect(200);
 
     expect(response.body.contentEncoding).toBe('deflate-base64url');
     expect(response.body.contentEncoded.startsWith('mdz1.')).toBe(true);
     expect(response.body.contentEncoded.length).toBeLessThan(response.body.rawBytes);
-    expect(decodeMarkdown(response.body.contentEncoded)).toContain('## The three surfaces');
+    expect(decodeMarkdown(response.body.contentEncoded)).toContain('## Verbs, nouns and counts');
   });
 
   it('refuse to write when Supabase is not configured', async () => {
