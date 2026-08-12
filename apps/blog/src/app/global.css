@@ -393,8 +393,12 @@ body {
   font-style: italic;
 }
 
-.prose-reader ul,
+.prose-reader ul {
+  list-style: disc;
+  padding-left: 1.4rem;
+}
 .prose-reader ol {
+  list-style: decimal;
   padding-left: 1.4rem;
 }
 .prose-reader li + li {
@@ -544,8 +548,12 @@ body {
   text-decoration: underline;
 }
 
-.editor-surface .ProseMirror ul,
+.editor-surface .ProseMirror ul {
+  list-style: disc;
+  padding-left: 1.4rem;
+}
 .editor-surface .ProseMirror ol {
+  list-style: decimal;
   padding-left: 1.4rem;
 }
 
