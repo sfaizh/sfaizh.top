@@ -53,6 +53,14 @@ type Mode = 'normal' | 'search' | 'command';
 
 const WHITESPACE = /\s/;
 
+/**
+ * Breathing room left above a `{`/`}`/heading jump target. The same value has
+ * to be subtracted when scrolling and added back when working out where the
+ * next jump starts from, or a jump lands short of its own target and the
+ * following one re-matches it.
+ */
+const JUMP_PAD = 12;
+
 /** Value equality, so an unchanged measurement keeps its object identity. */
 function sameRect(a: LineRect | null, b: LineRect | null): boolean {
   if (a === b) return true;
@@ -385,20 +393,34 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
       const targets = [...article.querySelectorAll<HTMLElement>(selector)];
       if (!targets.length) return;
 
-      const anchor = node.scrollTop + 4;
       const offsets = targets.map((element) => element.offsetTop);
+
+      // A jump parks its target `JUMP_PAD` below the top edge, so the search
+      // for the next one has to start from where that target actually sits.
+      // The extra pixel absorbs sub-pixel scroll positions.
+      const anchor = node.scrollTop + JUMP_PAD;
 
       let index: number;
       if (direction === 1) {
-        index = offsets.findIndex((offset) => offset > anchor);
-        if (index === -1) index = offsets.length - 1;
-        index = Math.min(offsets.length - 1, index + (count - 1));
+        const next = offsets.findIndex((offset) => offset > anchor + 1);
+        // Already past the last one: carry on to the end of the post rather
+        // than jumping backwards into it.
+        if (next === -1) {
+          scrollTo(node.scrollHeight, true);
+          return;
+        }
+        index = Math.min(offsets.length - 1, next + (count - 1));
       } else {
-        const previous = offsets.filter((offset) => offset < anchor - 4);
+        const previous = offsets.filter((offset) => offset < anchor - 1);
+        // Nothing above: the header and title are up there, so go to the top.
+        if (!previous.length) {
+          scrollTo(0, true);
+          return;
+        }
         index = Math.max(0, previous.length - count);
       }
 
-      scrollTo(offsets[index] - 12, true);
+      scrollTo(offsets[index] - JUMP_PAD, true);
 
       const map = mapRef.current;
       const first = targets[index].firstChild;

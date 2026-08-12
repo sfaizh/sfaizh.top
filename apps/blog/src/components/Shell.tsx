@@ -97,6 +97,23 @@ export function Shell() {
     setReaderSlug(slug);
   }, [pathname]);
 
+  // The terminal/reader content sits in a centered column narrower than the
+  // viewport (`--terminal-width`), but `body` has `overflow: hidden` so
+  // nothing under the cursor scrolls out in the side gutters. Forward wheel
+  // input from anywhere on the page to whichever `.scroll-themed` pane is
+  // actually mounted, so scrolling works no matter where the cursor is.
+  useEffect(() => {
+    function handleWheel(event: WheelEvent) {
+      if (event.ctrlKey) return; // pinch-to-zoom gesture — leave it alone
+      const scrollEl = document.querySelector<HTMLElement>('#terminal-surface .scroll-themed');
+      if (!scrollEl || scrollEl.contains(event.target as Node)) return;
+      scrollEl.scrollTop += event.deltaY;
+      event.preventDefault();
+    }
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, []);
+
   const fs = useMemo(() => buildFilesystem(posts), [posts]);
 
   const state: ShellState = useMemo(
