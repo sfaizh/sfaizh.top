@@ -46,7 +46,14 @@ export function Shell() {
   const clock = useClock();
   const [flavour, setFlavour] = useFlavour();
 
-  const [mode, setMode] = useState<Mode>('boot');
+  // `open` navigates to /posts/<slug>, and that is a different route segment —
+  // React unmounts this component and mounts a fresh one. The deep link is
+  // therefore read during render rather than in an effect, so the new instance
+  // starts *in* the reader instead of starting in the terminal and being moved
+  // there afterwards by an effect that another effect can still overrule.
+  const deepLinkSlug = pathname?.match(/^\/posts\/([^/]+)$/)?.[1] ?? null;
+
+  const [mode, setMode] = useState<Mode>(deepLinkSlug ? 'reader' : 'boot');
   const [entries, setEntries] = useState<Entry[]>([]);
   const [posts, setPosts] = useState<PostMeta[]>([]);
   const [stats, setStats] = useState<SiteStats | null>(null);
@@ -54,7 +61,7 @@ export function Shell() {
   const [cwd, setCwd] = useState(HOME);
   const [lastExit, setLastExit] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [readerSlug, setReaderSlug] = useState<string | null>(null);
+  const [readerSlug, setReaderSlug] = useState<string | null>(deepLinkSlug);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const nextId = useRef(0);
@@ -68,10 +75,26 @@ export function Shell() {
   // ── bootstrap ─────────────────────────────────────────────────────────────
   useEffect(() => {
     setHistory(readJson<string[]>(STORAGE_KEYS.history, []));
+    // Arriving straight at a post counts as having booted, so quitting back to
+    // the terminal does not replay the animation.
+    if (deepLinkSlug) writeLocal(STORAGE_KEYS.booted, '1');
+  }, [deepLinkSlug]);
 
-    const alreadyBooted = readLocal(STORAGE_KEYS.booted) === '1';
-    if (alreadyBooted || reducedMotion) setMode('shell');
-  }, [reducedMotion]);
+  /**
+   * Skip the boot animation when it has already been seen, or when the reader
+   * has asked for stillness.
+   *
+   * `reducedMotion` is a dependency because it is not known on the first
+   * render: `useMediaQuery` starts at `false` for SSR and syncs in an effect.
+   * That makes this effect run a second time the moment the query resolves —
+   * which on a phone is routine, since iOS reports `prefers-reduced-motion`
+   * whenever Low Power Mode is on. The `mode === 'boot'` guard is what keeps
+   * that second run from throwing an open post back to the terminal.
+   */
+  useEffect(() => {
+    if (mode !== 'boot') return;
+    if (readLocal(STORAGE_KEYS.booted) === '1' || reducedMotion) setMode('shell');
+  }, [mode, reducedMotion]);
 
   // The index is fetched once, during the boot animation, and then cached.
   useEffect(() => {
@@ -83,19 +106,20 @@ export function Shell() {
       .catch((cause: Error) => setLoadError(cause.message));
   }, []);
 
-  // Deep-link: if the page loaded at /posts/<slug>, open that post once and
-  // skip the boot animation. The ref prevents re-opening if posts re-fetches.
-  const deepLinkConsumed = useRef(false);
+  /**
+   * Follow the URL when it moves under us — history navigation, or one post
+   * linking to another. The initial value is already in state, so this only has
+   * to react to *changes*, and `consumedSlug` is what makes that distinction:
+   * without it, quitting would re-open the post it just closed, because
+   * `readerSlug` is cleared a beat before the pathname catches up.
+   */
+  const consumedSlug = useRef(deepLinkSlug);
   useEffect(() => {
-    if (deepLinkConsumed.current || !pathname) return;
-    const match = pathname.match(/^\/posts\/([^/]+)$/);
-    if (!match) return;
-    const slug = match[1];
-    deepLinkConsumed.current = true;
-    writeLocal(STORAGE_KEYS.booted, '1');
+    if (!deepLinkSlug || deepLinkSlug === consumedSlug.current) return;
+    consumedSlug.current = deepLinkSlug;
     setMode('reader');
-    setReaderSlug(slug);
-  }, [pathname]);
+    setReaderSlug(deepLinkSlug);
+  }, [deepLinkSlug]);
 
   // The terminal/reader content sits in a centered column narrower than the
   // viewport (`--terminal-width`), but `body` has `overflow: hidden` so
@@ -167,6 +191,7 @@ export function Shell() {
             setMotion(effect.preference);
             break;
           case 'open':
+            consumedSlug.current = effect.slug;
             setReaderSlug(effect.slug);
             setMode('reader');
             router.replace(`/posts/${effect.slug}`);
@@ -232,6 +257,7 @@ export function Shell() {
   );
 
   const quitReader = useCallback(() => {
+    consumedSlug.current = null;
     setMode('shell');
     setReaderSlug(null);
     router.replace('/');

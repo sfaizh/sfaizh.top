@@ -4,10 +4,11 @@ import { Shell } from './Shell';
 import { TEST_POSTS } from '../lib/shell/test-state';
 
 const push = jest.fn();
+let pathname = '/';
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push, replace: jest.fn(), refresh: jest.fn() }),
-  usePathname: () => '/',
+  usePathname: () => pathname,
 }));
 
 jest.mock('../lib/api-client', () => ({
@@ -50,8 +51,14 @@ async function run(input: HTMLInputElement, command: string) {
   });
 }
 
+// Captured after jest.setup.ts has installed its stub, so a test that swaps in
+// its own media-query behaviour cannot leak into the next one.
+const baseMatchMedia = window.matchMedia;
+
 beforeEach(() => {
   push.mockClear();
+  pathname = '/';
+  Object.defineProperty(window, 'matchMedia', { writable: true, value: baseMatchMedia });
   delete document.documentElement.dataset.flavour;
 });
 
@@ -172,6 +179,71 @@ describe('Shell', () => {
     await run(input, 'sudo -i');
 
     await waitFor(() => expect(push).toHaveBeenCalledWith('/admin'));
+  });
+
+  it('opens the reader directly when the page loads at /posts/<slug>', async () => {
+    window.localStorage.setItem(STORAGE_KEYS.booted, '1');
+    pathname = '/posts/building-a-terminal-blog';
+
+    api.listPosts.mockResolvedValue(TEST_POSTS);
+    api.stats.mockResolvedValue({ posts: 2, drafts: 0, tags: 3, words: 2600, storage: 'filesystem' });
+    api.rendered.mockResolvedValue({
+      ...TEST_POSTS[0],
+      html: '<p>Body text.</p>',
+      headings: [],
+    });
+
+    render(<Shell />);
+
+    expect(await screen.findByRole('document')).toBeTruthy();
+    expect(screen.queryByLabelText('Terminal input')).toBeNull();
+  });
+
+  /**
+   * The reduced-motion query is not known on the first render — it resolves in
+   * an effect, one commit late — and on iOS it resolves to `true` whenever Low
+   * Power Mode is on. That late change used to re-run the bootstrap effect and
+   * drop an already-open post back to the terminal, so a deep link opened the
+   * shell instead of the post roughly every other time.
+   */
+  it('stays in the reader when the reduced-motion query resolves late', async () => {
+    window.localStorage.setItem(STORAGE_KEYS.booted, '1');
+    pathname = '/posts/building-a-terminal-blog';
+
+    const listeners: (() => void)[] = [];
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: (query: string) => ({
+        matches: query.includes('prefers-reduced-motion'),
+        media: query,
+        onchange: null,
+        addEventListener: (_: string, handler: () => void) => listeners.push(handler),
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        dispatchEvent: () => false,
+      }),
+    });
+
+    api.listPosts.mockResolvedValue(TEST_POSTS);
+    api.stats.mockResolvedValue({ posts: 2, drafts: 0, tags: 3, words: 2600, storage: 'filesystem' });
+    api.rendered.mockResolvedValue({
+      ...TEST_POSTS[0],
+      html: '<p>Body text.</p>',
+      headings: [],
+    });
+
+    render(<Shell />);
+    expect(await screen.findByRole('document')).toBeTruthy();
+
+    // A second resolution of the query — a `change` event, an orientation
+    // change — must not evict the post either.
+    await act(async () => {
+      for (const listener of listeners) listener();
+    });
+
+    expect(screen.getByRole('document')).toBeTruthy();
+    expect(screen.queryByLabelText('Terminal input')).toBeNull();
   });
 
   it('reports an API failure without breaking the shell', async () => {

@@ -55,7 +55,6 @@ body {
   font-size: 15px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -291,7 +290,9 @@ body {
   /* Hyphenation belongs to justified text; ragged-right prose just gets a
      column of broken words out of it. */
   hyphens: none;
-  text-rendering: optimizeLegibility;
+  /* `text-rendering: optimizeLegibility` is deliberately absent. Browsers kern
+     by default now, so it buys nothing, and it makes every reflow of a
+     long article re-shape the whole run — which on a phone is visible. */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -535,11 +536,18 @@ body {
   background: var(--ctp-mantle);
   display: block;
 
-  /* Promote each image to its own compositor layer so the GPU keeps the
-     texture resident during scroll. Without this, mobile browsers discard
-     image tiles as they leave the viewport and repaint them on the way back,
-     which shows as a momentary blank flash. */
-  will-change: transform;
+  /* Deliberately NOT `will-change: transform`.
+
+     It looks like the fix for images flashing during scroll, and on a desktop
+     GPU it is. On a phone it is the cause: `will-change` promotes *every*
+     figure to its own compositor layer for the whole life of the page, so a
+     post with a dozen photographs asks iOS to hold a dozen full-size textures
+     resident at once. Past the device's texture budget the browser stops
+     honouring the promotion and starts dropping the decodes outright — which
+     is the broken-image glyph, and the flicker it was supposed to prevent.
+
+     Left alone, the browser rasterises what is on screen and nothing more,
+     which is the behaviour we actually want here. */
 }
 .prose-reader figcaption {
   margin-top: 0.6em;

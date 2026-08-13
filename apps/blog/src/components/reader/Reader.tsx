@@ -279,8 +279,18 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
     setCursorRect((prev) => (sameRect(prev, rect) ? prev : rect));
   }, [cursor, textMap]);
 
+  /**
+   * Keep the cursor block pinned to its character as the text reflows.
+   *
+   * Only on a pointer device. There is no cursor to keep pinned on a phone —
+   * `SmearCursor` is not even rendered — and the observer is watching the one
+   * element guaranteed to resize repeatedly while you read: the article, which
+   * grows every time a lazily-loaded photograph arrives and claims its real
+   * height. Each of those rebuilt the entire flat text map and re-rendered the
+   * reader, mid-scroll, on the device least able to absorb it.
+   */
   useEffect(() => {
-    if (!post) return;
+    if (!post || isTouch) return;
 
     remeasure();
     const container = scrollRef.current;
@@ -291,7 +301,7 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
     if (articleRef.current) observer.observe(articleRef.current);
 
     return () => observer.disconnect();
-  }, [post, remeasure]);
+  }, [isTouch, post, remeasure]);
 
   /**
    * "The character one line down" is a question only layout can answer in
