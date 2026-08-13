@@ -163,6 +163,55 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
     if (post) scrollRef.current?.focus({ preventScroll: true });
   }, [post]);
 
+  /**
+   * Freeze each image's box to its true aspect ratio, the moment that ratio is
+   * knowable.
+   *
+   * The stylesheet can only offer `aspect-ratio: auto 16 / 9` — a guess, because
+   * the markdown carries no dimensions. While the image is decoded the `auto`
+   * half wins and the box takes the real ratio; when a phone evicts the decode
+   * under memory pressure the intrinsic ratio goes with it and the box snaps
+   * back to the 16:9 guess. For a portrait photograph that is a collapse from
+   * about 133% of its width to 56%, so the prose below lurches up, and lurches
+   * back down when the resource is re-parsed. Worse, each of those height
+   * changes forces the image to be re-rasterised at a new size, which is itself
+   * more memory pressure — the eviction and the reflow feed each other, and it
+   * reads as the whole page juddering as an image passes through the viewport.
+   *
+   * `naturalWidth`/`naturalHeight` survive eviction. Copying them into an
+   * inline `aspect-ratio` — which outranks the stylesheet — makes the box a
+   * fixed property of the element rather than of its decode state. An evicted
+   * image then really is just a blank rectangle, and nothing moves.
+   *
+   * React never rewrites this subtree (it compares the `__html` string and
+   * finds it unchanged), so the pinned styles survive re-renders.
+   */
+  useEffect(() => {
+    const article = articleRef.current;
+    if (!article) return;
+
+    const pin = (image: HTMLImageElement) => {
+      if (!image.naturalWidth || !image.naturalHeight) return;
+      image.style.aspectRatio = `${image.naturalWidth} / ${image.naturalHeight}`;
+    };
+
+    // Anything already decoded — served from cache, or loaded between the
+    // commit and this effect running.
+    for (const image of article.querySelectorAll('img')) {
+      if (image.complete) pin(image);
+    }
+
+    // `load` does not bubble, so the delegated listener has to capture. One
+    // listener rather than one per image, because `loading="lazy"` means new
+    // images keep arriving for as long as the reader is open.
+    const onLoad = (event: Event) => {
+      if (event.target instanceof HTMLImageElement) pin(event.target);
+    };
+
+    article.addEventListener('load', onLoad, true);
+    return () => article.removeEventListener('load', onLoad, true);
+  }, [post]);
+
   const updatePercent = useCallback(() => {
     const node = scrollRef.current;
     if (!node) return;

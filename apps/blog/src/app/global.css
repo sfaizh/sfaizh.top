@@ -521,14 +521,22 @@ body {
   width: 100%;
   height: auto;
 
-  /* Reserve the box so it can never collapse.
-     `auto 16 / 9` means: use the image's own intrinsic ratio when it has one,
-     and fall back to 16:9 when it does not. Mobile browsers evict decoded
-     image data under memory pressure, and an SVG that has been evicted has no
-     intrinsic size — without this the box collapses to zero height, the prose
-     below jumps up, and everything snaps back a few hundred milliseconds later
-     when the resource is re-parsed. With a reserved box, an evicted image is
-     at worst a momentary blank rectangle; nothing moves. */
+  /* A first guess at the box, and nothing more.
+
+     `auto 16 / 9` means "use the intrinsic ratio when there is one, otherwise
+     16:9". It stops an image that has not loaded from collapsing to zero
+     height, which is worth having — but read the second half carefully: the
+     fallback applies whenever the intrinsic ratio is *unavailable*, and on a
+     phone that includes every time the decode is evicted under memory
+     pressure, not just before the first load. A portrait photograph then snaps
+     between its real ratio and 16:9 as it passes through the viewport, which
+     is a reflow, which forces a re-raster, which is more memory pressure.
+
+     So this rule is deliberately temporary: `Reader.tsx` overwrites it with an
+     inline `aspect-ratio` carrying the real dimensions as soon as each image
+     reports them, and from that point the box is fixed. If the markdown ever
+     starts carrying real dimensions (the upload path already computes them),
+     emit them as `width`/`height` attributes and this guess can go entirely. */
   aspect-ratio: auto 16 / 9;
 
   border-radius: 8px;
