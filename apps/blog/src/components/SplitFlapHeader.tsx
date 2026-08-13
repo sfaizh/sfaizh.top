@@ -111,7 +111,9 @@ export function SplitFlapHeader({ className }: Props) {
       style={{ perspective: '520px' }}
     >
       {/* The accessible name never flickers, whatever the flaps are doing. */}
-      <h1 className="sr-only">sfaizh.top engineering blog</h1>
+      <h1 className="sr-only">
+        A blog containing experiments in software and systems engineering
+      </h1>
 
       <div
         aria-hidden="true"

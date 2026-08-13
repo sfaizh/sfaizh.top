@@ -4,7 +4,7 @@ An engineering blog with a terminal for a front door.
 
 The home page is a shell. You type `ls`, you get posts. You type
 `open building-a-terminal-blog`, and the post opens in a pager that behaves like
-Neovim — `j`/`k` to move, `gg`/`G` to jump, `/` to search, `q` to come back.
+Neovim, `j`/`k` to move, `gg`/`G` to jump, `/` to search, `q` to come back.
 There is no menu and no toolbar. Everything is one page.
 
 Posts are markdown files in this repository. Supabase is an editing surface on
@@ -35,7 +35,7 @@ npm run dev          # http://localhost:3000
 That is the whole setup. With no environment variables the site runs completely:
 posts are served from `content/posts`, and the admin console accepts the
 development password `catppuccin`. Configuration adds capabilities rather than
-enabling the basics — see [Environment](#environment).
+enabling the basics, see [Environment](#environment).
 
 ```bash
 npm run dev:api      # the NestJS API alone, on :3333
@@ -81,7 +81,7 @@ AUTH_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('b
 ```
 
 That prints the `AUTH_SECRET` and `ADMIN_PASSWORD_HASH` pair to put in the
-environment. Sessions are HMAC-signed tokens, not JWTs — there is one user and
+environment. Sessions are HMAC-signed tokens, not JWTs, there is one user and
 no third party consuming them.
 
 ---
@@ -111,7 +111,7 @@ suggestion ahead of the cursor, and a menu on the second `Tab`.
 
 ### Reader motions
 
-There is a real cursor, and it smears when it moves — an adaptation of
+There is a real cursor, and it smears when it moves, an adaptation of
 [`smear-cursor.nvim`](https://github.com/sphamba/smear-cursor.nvim)'s "faster"
 preset. Like Vim, the view only scrolls when the cursor would otherwise leave
 it.
@@ -132,7 +132,7 @@ it.
 | `v` / `V` | Visual, visual line |
 | `y` | Yank the selection (`yy` for the current line) |
 | `?` | The full key map |
-| `:` | Command line — `:q`, `:quit`, `:help` |
+| `:` | Command line, `:q`, `:quit`, `:help` |
 | `q` / `Esc` | Cancel the selection, then the search, then leave |
 
 Counts work: `10j`, `3w`, `3}`. A pending count or prefix is shown in the
@@ -141,7 +141,7 @@ than teleporting you somewhere a minute later.
 
 `q` and `Esc` are contextual, innermost first: they drop a visual selection,
 then clear a search, and only leave the post when there is nothing left to
-cancel. `y` copies to the system clipboard, which needs a secure context — it
+cancel. `y` copies to the system clipboard, which needs a secure context, it
 says so in the statusline if the browser refuses.
 
 There are no editing commands. The reader is read-only, so the operator half of
@@ -156,7 +156,7 @@ close) instead of motions.
 
 ### Accessibility
 
-`prefers-reduced-motion` skips the boot sequence and stops every animation —
+`prefers-reduced-motion` skips the boot sequence and stops every animation,
 including the split-flap's roll, though the header still alternates between its
 two phrases so the second one is never simply invisible.
 
@@ -165,8 +165,8 @@ That signal is not always what it appears to be: **iOS reports
 battery looks identical to a reader who asked for stillness. Rather than guess,
 `motion full` overrides it and is remembered; `motion auto` hands the decision
 back to the device. `neofetch` reports which is in force. The
-reader renders a real semantic document — `<article>`, real headings, real
-landmarks — with the motion layer attached to a focusable container that `Esc`
+reader renders a real semantic document, `<article>`, real headings, real
+landmarks, with the motion layer attached to a focusable container that `Esc`
 always escapes. There is a skip link to the terminal, and the split-flap header
 has a stable accessible name that does not flicker.
 
@@ -176,13 +176,13 @@ has a stable accessible name that does not flicker.
 
 ```
 apps/
-  blog/            Next.js 16 — the terminal, the reader, the admin console
+  blog/            Next.js 16, the terminal, the reader, the admin console
     src/app/       App Router pages (/, /admin)
     src/pages/api/v1/[...path].ts   ← the NestJS app, mounted
     src/components/                 terminal · reader · admin · statusline
     src/lib/shell/                  the shell: commands, engine, VFS, output
     src/lib/reader/                 vim motions, search highlighting
-  api/             NestJS 11 — posts, auth, media
+  api/             NestJS 11, posts, auth, media
   blog-e2e/        Playwright
 libs/
   shared/          codec · markdown · frontmatter · sanitiser · highlighter
@@ -206,7 +206,7 @@ export default async function handler(req, res) {
 }
 ```
 
-The Pages Router is used deliberately — its handlers receive real Node
+The Pages Router is used deliberately, its handlers receive real Node
 `IncomingMessage`/`ServerResponse` objects, which is exactly what Express wants.
 Body parsing is disabled so Nest's own parsers, including the raw parser the
 image upload depends on, see an untouched stream. The Nest instance is memoised
@@ -220,13 +220,13 @@ Because the API is compiled by SWC in that context, nothing in it relies on
 explicit `@Inject(...)`, and request payloads are validated by hand-written
 functions in `libs/shared/src/lib/validate.ts` rather than by `class-validator`.
 
-That choice is what lets the deploy build skip type checking (see below)
-without breaking dependency injection: Nest never has to read decorator
-metadata, so SWC never has to emit any.
+That choice is what lets the deploy build skip type checking without breaking
+dependency injection: Nest never has to read decorator metadata, so SWC never
+has to emit any.
 
 ### Where posts live
 
-Markdown files in `content/posts` are the source of truth — greppable,
+Markdown files in `content/posts` are the source of truth, greppable,
 diffable, reviewable. Database rows shadow them by slug:
 
 ```
@@ -269,7 +269,7 @@ Markdown → HTML happens on the server. Headings get stable ids (and feed the
 reader's `]]` motion), fenced code is highlighted by a ~150-line tokeniser
 written for this site, and everything is passed through an allow-list sanitiser
 before it reaches the client. No syntax-highlighting library is shipped to the
-browser, and no webfont is downloaded — powerline separators are CSS `clip-path`
+browser, and no webfont is downloaded, powerline separators are CSS `clip-path`
 cuts, so they render identically whether or not you have a Nerd Font installed.
 If you do have one, it is picked up first.
 
@@ -277,7 +277,7 @@ If you do have one, it is picked up first.
 
 All four Catppuccin flavours are emitted as CSS custom properties keyed on
 `data-flavour`, generated from the palette in `libs/shared/src/lib/theme.ts`.
-Switching flavour is one attribute write — no re-render, no flash. An inline
+Switching flavour is one attribute write, no re-render, no flash. An inline
 script applies the stored choice before first paint.
 
 ---
@@ -292,58 +292,6 @@ Everything is optional; each variable switches on one more capability. See
 | `AUTH_SECRET`, `ADMIN_PASSWORD_HASH` | Admin uses the dev password locally, and is disabled in production |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Posts are served read-only from the markdown files |
 | `BLOB_READ_WRITE_TOKEN` | Image upload is disabled, with a clear message |
-
----
-
-## Deploying to Vercel
-
-1. Import the repository. Vercel reads [`vercel.json`](vercel.json); the root
-   directory stays at the repository root.
-2. Add the environment variables above.
-3. Attach a Blob store to the project — `BLOB_READ_WRITE_TOKEN` appears
-   automatically.
-4. Run [`supabase/schema.sql`](supabase/schema.sql) in the Supabase SQL editor,
-   then seed the existing posts:
-
-   ```bash
-   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npm run db:seed
-   ```
-
-The build command is `npm run build`, which regenerates the content bundle and
-then builds the Next app. Both halves of the site deploy as one project.
-
-### Why `apps/blog/package.json` looks the way it does
-
-**Vercel installs only the `apps/blog` workspace.** It detects the Next.js app
-inside the monorepo, runs the build from that directory, and never reads the
-root manifest — not its `dependencies`, not its `devDependencies`. A root
-install here is ~1,500 packages; Vercel's is ~350.
-
-So `apps/blog/package.json` is the manifest for the deployable unit and has to
-be complete. That is why it lists things the app never imports directly —
-`@nestjs/common`, `express`, `pako`, `marked` — they arrive transitively
-through the mounted API and the shared library, and Vercel has to be told about
-them. The root keeps development tooling only (Nx, Jest, ESLint, Playwright,
-ts-node). npm workspaces hoists everything into the root `node_modules`, so
-`nx serve api`, the test suites and the type checker all still resolve normally
-and nothing is duplicated on disk.
-
-Two smaller consequences of the same constraint:
-
-- **`next build` does not type-check.** `typescript.ignoreBuildErrors` is on.
-  CI runs `npm run typecheck` over both projects on every push and pull
-  request; doing it again inside the deploy would drag every dev-only `@types`
-  package (`express`, `pako`, `turndown`, `jest`) into the deployed manifest to
-  satisfy a duplicate check. The trade is real: a type error pushed straight to
-  `main` can deploy before CI goes red. Set `ignoreBuildErrors: false` and add
-  those `@types` packages here if you would rather the deploy be the gate.
-- **`next.config.js` does not use `@nx/next`'s `withNx`.** It made the config
-  file require a build-time devDependency for features this app does not use.
-  Nx still infers its targets from the file's presence.
-
-If you add a runtime dependency, it belongs in `apps/blog/package.json`, even
-if only `apps/api` or `libs/shared` imports it. A test-only or build-tool
-dependency belongs at the root.
 
 ---
 

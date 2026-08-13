@@ -79,7 +79,9 @@ describe('SplitFlapHeader', () => {
   it('exposes a stable accessible name that does not flicker', () => {
     const { container, getByText } = render(<SplitFlapHeader />);
 
-    expect(getByText('sfaizh.top engineering blog')).toBeTruthy();
+    expect(
+      getByText('A blog containing experiments in software and systems engineering')
+    ).toBeTruthy();
     // The animated flaps themselves are decorative.
     expect(container.querySelector('[aria-hidden="true"]')).toBeTruthy();
   });
