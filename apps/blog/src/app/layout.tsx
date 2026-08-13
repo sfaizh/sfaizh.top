@@ -8,15 +8,14 @@ export const metadata: Metadata = {
     default: 'sfaizh.top engineering blog',
     template: '%s · sfaizh.top',
   },
-  description:
-    'An engineering blog with a terminal for a front door. Posts on systems, tooling and interface design.',
+  description: 'A blog containing experiments in software and systems engineering',
   applicationName: 'sfaizh.top',
   authors: [{ name: 'Faizan', url: 'https://sfaizh.top' }],
   openGraph: {
     type: 'website',
     siteName: 'sfaizh.top',
     title: 'sfaizh.top engineering blog',
-    description: 'An engineering blog with a terminal for a front door.',
+    description: 'A blog containing experiments in software and systems engineering',
   },
   twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },
