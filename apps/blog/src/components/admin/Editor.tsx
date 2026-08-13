@@ -105,7 +105,24 @@ export function Editor({
   }
 
   return (
-    <div className="editor-surface">
+    <div
+      className="editor-surface"
+      // ProseMirror's own `handleDrop` only covers the editable area, so a file
+      // let go over the toolbar or the padding below the last paragraph would
+      // fall through to the browser, which navigates the tab to it. Catching it
+      // here makes the whole panel a drop target.
+      onDragOver={(event) => {
+        if (event.dataTransfer.types.includes('Files')) event.preventDefault();
+      }}
+      onDrop={(event) => {
+        // ProseMirror handled it already and inserted at the drop point.
+        if (event.defaultPrevented) return;
+        const files = imageFilesFrom(event.dataTransfer);
+        if (!files.length) return;
+        event.preventDefault();
+        onUploadFiles(files);
+      }}
+    >
       <Toolbar editor={editor} onUploadFiles={onUploadFiles} uploadsEnabled={uploadsEnabled} />
 
       {editor.isActive('image') && (

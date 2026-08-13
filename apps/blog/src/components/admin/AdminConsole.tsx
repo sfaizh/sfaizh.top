@@ -414,7 +414,9 @@ export function AdminConsole() {
 
         setNotice({
           tone: 'ok',
-          message: `${file.name}: ${formatBytes(compressed.originalSize)} → ${formatBytes(uploaded.size)} (−${Math.round(compressed.saved * 100)}%)`,
+          message: compressed.passthrough
+            ? `${file.name}: ${formatBytes(uploaded.size)}, uploaded as-is to keep the animation`
+            : `${file.name}: ${formatBytes(compressed.originalSize)} → ${formatBytes(uploaded.size)} (−${Math.round(compressed.saved * 100)}%)`,
         });
       } catch (cause) {
         setNotice({ tone: 'error', message: `${file.name}: ${(cause as Error).message}` });

@@ -89,8 +89,17 @@ export function parsePostUpsert(input: unknown): PostUpsert {
   };
 }
 
-/** Images only, and only the formats the compressor can actually produce. */
-export const ALLOWED_IMAGE_TYPES = ['image/webp', 'image/jpeg', 'image/png', 'image/avif'] as const;
+/**
+ * Images only: the formats the compressor can produce, plus GIF, which is
+ * uploaded untouched because a canvas cannot re-encode an animation.
+ */
+export const ALLOWED_IMAGE_TYPES = [
+  'image/webp',
+  'image/jpeg',
+  'image/png',
+  'image/avif',
+  'image/gif',
+] as const;
 export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export function assertUploadable(contentType: string, size: number): void {

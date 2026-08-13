@@ -156,6 +156,10 @@ describe('assertUploadable', () => {
     expect(() => assertUploadable('image/webp', 1024)).not.toThrow();
   });
 
+  it('accepts GIF, which is uploaded uncompressed to keep the animation', () => {
+    expect(() => assertUploadable('image/gif', 1024)).not.toThrow();
+  });
+
   it('rejects other content types', () => {
     expect(() => assertUploadable('application/pdf', 1024)).toThrow(/unsupported content type/);
   });
