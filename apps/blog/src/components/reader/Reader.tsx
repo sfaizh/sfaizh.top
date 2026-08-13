@@ -871,8 +871,10 @@ export function Reader({ slug, onQuit, isTouch }: Props) {
               )}
             </header>
 
-            {/* Rendered and sanitised on the server; see libs/shared/markdown.ts */}
-            <div dangerouslySetInnerHTML={{ __html: post.html }} />
+            {/* Rendered and sanitised on the server; see libs/shared/markdown.ts.
+                The class matters: the body is a wrapper, so the article's own
+                spacing rules cannot reach the paragraphs inside it. */}
+            <div className="prose-body" dangerouslySetInnerHTML={{ __html: post.html }} />
 
             <footer className="mt-16 border-t border-[color:var(--ctp-surface0)] pt-6 font-mono text-[0.8em] text-[color:var(--ctp-overlay1)]">
               <button

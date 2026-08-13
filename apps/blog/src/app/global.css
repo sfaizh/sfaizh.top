@@ -18,6 +18,10 @@
     Consolas, 'Liberation Mono', monospace;
   --font-prose: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Roboto,
     'Helvetica Neue', Arial, sans-serif;
+  /* Long-form body copy. The same serif stack Medium reads with: a true book
+     face where one exists, Georgia everywhere else. */
+  --font-read: Charter, 'Bitstream Charter', 'Iowan Old Style', 'Source Serif Pro',
+    Georgia, Cambria, 'Times New Roman', Times, serif;
 
   --terminal-width: min(1080px, 92vw);
   --statusline-height: 30px;
@@ -266,46 +270,59 @@ body {
 /* ───────────────────────────────────────────────────────────────────────────
    Reader prose
 
-   The terminal metaphor stops at the door: long-form reading gets a
-   proportional typeface, a 75ch measure and generous leading, because that is
-   what actually makes prose readable.
+   The terminal metaphor stops at the door. Long-form reading gets the shape a
+   reading surface actually wants: a book serif, a measure in the mid-60s of
+   characters, and space between paragraphs that clearly beats the space
+   between lines.
    ─────────────────────────────────────────────────────────────────────────── */
 .prose-reader {
-  font-family: var(--font-prose);
-  font-size: clamp(16px, 0.55vw + 15px, 18.5px);
-  line-height: 1.72;
+  font-family: var(--font-read);
+  /* Serifs carry a larger x-height than the sans this used to be set in, so
+     the same nominal size reads bigger — hence the smaller number. */
+  font-size: clamp(16px, 0.28vw + 15.2px, 17.5px);
+  line-height: 1.68;
   color: var(--ctp-text);
-  max-width: 75ch;
+  /* ~660px, the measure long-form sites converge on. `ch` would drift with
+     the typeface; this does not. */
+  max-width: 41.5rem;
   margin: 0 auto;
   padding: 0 1.5rem;
-  hyphens: auto;
   overflow-wrap: break-word;
+  /* Hyphenation belongs to justified text; ragged-right prose just gets a
+     column of broken words out of it. */
+  hyphens: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 /*
    Vertical rhythm.
 
-   Three tiers, in increasing order of separation. The gap between paragraphs
-   has to comfortably beat the gap between lines or the eye cannot find where
-   the next one starts — at a 1.72 leading, 1.15em was not enough and the text
-   read as one slab.
+   These rules are scoped to `.prose-body` — the div the rendered markdown is
+   injected into — and not to `.prose-reader`. The article's own children are
+   just the header, that wrapper and the footer, so a child combinator on the
+   article never reaches a single paragraph.
 */
-.prose-reader > * + * {
-  margin-top: 1.6em;
+.prose-body > * + * {
+  margin-top: 1.5em;
 }
 
-/* Set pieces are their own objects on the page, so they get air on both sides
-   rather than sitting in the paragraph flow. */
-.prose-reader > :is(pre, blockquote, figure, .md-figure, table, ul, ol, hr),
-.prose-reader > :is(pre, blockquote, figure, .md-figure, table, ul, ol, hr) + * {
-  margin-top: 2.1em;
+.prose-body > :first-child {
+  margin-top: 0;
 }
 
-/* A heading belongs to what follows it, so it sits close to its own text and
-   far from the section it just ended. This rule is last so it wins over the
-   set-piece spacing when a list or a code block opens a section. */
-.prose-reader > :is(h1, h2, h3, h4) + * {
-  margin-top: 0.75em;
+/* Set pieces are objects on the page rather than more paragraph, so they get
+   air on both sides. */
+.prose-body > :is(pre, blockquote, figure, .md-figure, table, ul, ol, hr),
+.prose-body > :is(pre, blockquote, figure, .md-figure, table, ul, ol, hr) + * {
+  margin-top: 2em;
+}
+
+/* A heading belongs to the text beneath it: close to what it introduces, far
+   from the section it just ended. Last, so it wins when a list or a code block
+   opens a section. */
+.prose-body > :is(h1, h2, h3, h4) + * {
+  margin-top: 0.7em;
 }
 
 .prose-reader h1,
@@ -321,28 +338,34 @@ body {
 }
 
 .prose-reader h1 {
-  font-size: 1.7em;
-  margin-top: 1.8em;
+  font-size: 2em;
+  line-height: 1.2;
+  margin-top: 1.6em;
 }
 .prose-reader h2 {
-  font-size: 1.32em;
-  margin-top: 2em;
+  font-size: 1.4em;
+  margin-top: 2.4em;
   color: var(--ctp-mauve);
+}
+.prose-reader h3 {
+  font-size: 1.15em;
+  margin-top: 1.9em;
+  color: var(--ctp-blue);
+}
+
+/* The markdown prefixes stay — they are the reader's signature — but set
+   smaller and dimmer than the heading so they read as a margin mark rather
+   than as part of the title. */
+.prose-reader :is(h2, h3)::before {
+  color: var(--ctp-surface2);
+  font-weight: 400;
+  font-size: 0.8em;
 }
 .prose-reader h2::before {
   content: '## ';
-  color: var(--ctp-overlay0);
-  font-weight: 400;
-}
-.prose-reader h3 {
-  font-size: 1.12em;
-  margin-top: 1.7em;
-  color: var(--ctp-blue);
 }
 .prose-reader h3::before {
   content: '### ';
-  color: var(--ctp-overlay0);
-  font-weight: 400;
 }
 
 .prose-reader a {
