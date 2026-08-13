@@ -282,8 +282,30 @@ body {
   overflow-wrap: break-word;
 }
 
+/*
+   Vertical rhythm.
+
+   Three tiers, in increasing order of separation. The gap between paragraphs
+   has to comfortably beat the gap between lines or the eye cannot find where
+   the next one starts — at a 1.72 leading, 1.15em was not enough and the text
+   read as one slab.
+*/
 .prose-reader > * + * {
-  margin-top: 1.15em;
+  margin-top: 1.6em;
+}
+
+/* Set pieces are their own objects on the page, so they get air on both sides
+   rather than sitting in the paragraph flow. */
+.prose-reader > :is(pre, blockquote, figure, .md-figure, table, ul, ol, hr),
+.prose-reader > :is(pre, blockquote, figure, .md-figure, table, ul, ol, hr) + * {
+  margin-top: 2.1em;
+}
+
+/* A heading belongs to what follows it, so it sits close to its own text and
+   far from the section it just ended. This rule is last so it wins over the
+   set-piece spacing when a list or a code block opens a section. */
+.prose-reader > :is(h1, h2, h3, h4) + * {
+  margin-top: 0.75em;
 }
 
 .prose-reader h1,
@@ -359,9 +381,11 @@ body {
   border: 1px solid var(--ctp-surface0);
   border-left: 3px solid var(--ctp-mauve);
   border-radius: 6px;
-  padding: 0.95rem 1.1rem;
+  /* Extra room at the top so the language badge never crowds the first line. */
+  padding: 1.15rem 1.25rem 1.15rem;
   overflow-x: auto;
   position: relative;
+  tab-size: 2;
 }
 
 .prose-reader pre code {
@@ -386,23 +410,52 @@ body {
   border-radius: 0 5px 0 5px;
 }
 
+/* A quote reads as a panel rather than a stray indented line: the tinted
+   ground and the inset do the work the bare rule was failing to do. */
 .prose-reader blockquote {
   border-left: 3px solid var(--ctp-yellow);
-  padding-left: 1.1rem;
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--ctp-yellow) 7%, var(--ctp-mantle));
+  padding: 0.85rem 1.2rem;
   color: var(--ctp-subtext1);
   font-style: italic;
+}
+.prose-reader blockquote > * + * {
+  margin-top: 0.9em;
+}
+.prose-reader blockquote :last-child {
+  margin-bottom: 0;
 }
 
 .prose-reader ul {
   list-style: disc;
-  padding-left: 1.4rem;
+  padding-left: 1.45rem;
 }
 .prose-reader ol {
   list-style: decimal;
-  padding-left: 1.4rem;
+  padding-left: 1.45rem;
 }
+/* Items sit closer to each other than paragraphs do — that grouping is what
+   makes a list scan as one unit — but not so close that they run together. */
 .prose-reader li + li {
-  margin-top: 0.4em;
+  margin-top: 0.55em;
+}
+.prose-reader li {
+  padding-left: 0.25rem;
+}
+/* Markdown wraps items in <p> as soon as a list has blank lines between
+   items, which otherwise collapses all the spacing inside it. */
+.prose-reader li > p {
+  margin: 0;
+}
+.prose-reader li > p + p {
+  margin-top: 0.7em;
+}
+.prose-reader li > :is(ul, ol) {
+  margin-top: 0.55em;
+}
+.prose-reader li > :is(pre, blockquote) {
+  margin-top: 0.8em;
 }
 .prose-reader ul li::marker {
   color: var(--ctp-mauve);
