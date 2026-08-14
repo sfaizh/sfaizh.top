@@ -32,7 +32,23 @@ const nextConfig = {
   images: {
     // Images are served from Vercel Blob once uploaded through the admin.
     remotePatterns: [{ protocol: 'https', hostname: '**.public.blob.vercel-storage.com' }],
-    formats: ['image/avif', 'image/webp'],
+
+    /**
+     * WebP only, and deliberately not AVIF.
+     *
+     * Next serves the first entry the browser's Accept header allows, so
+     * listing AVIF first means every phone gets AVIF. It is the smaller file —
+     * 40KB against 63KB for the same 828px photograph — and that is the wrong
+     * thing to optimise for here. AVIF costs several times more CPU to decode
+     * than WebP, and a post carrying fourteen photographs serialises those
+     * decodes: the image sits as an empty box for seconds, and every time the
+     * phone evicts it on scroll the bill is paid again.
+     *
+     * The 23KB saved per image is worth far less than an image that appears
+     * when you scroll to it. The uploads are already WebP, so this is a plain
+     * resize rather than a transcode.
+     */
+    formats: ['image/webp'],
   },
 
   async headers() {
