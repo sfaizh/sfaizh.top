@@ -43,6 +43,20 @@ describe('sanitizeHtml', () => {
     expect(sanitizeHtml('<img src="data:text/html;base64,AAAA" alt="" />')).not.toContain('data:text/html');
   });
 
+  it('keeps a srcset whose every candidate is a safe URL', () => {
+    const html = '<img src="/a.webp" srcset="/a-384.webp 384w, /a-640.webp 640w" sizes="50vw" />';
+    const output = sanitizeHtml(html);
+    expect(output).toContain('srcset="/a-384.webp 384w, /a-640.webp 640w"');
+    expect(output).toContain('sizes="50vw"');
+  });
+
+  it('drops the whole srcset when any candidate is unsafe', () => {
+    const output = sanitizeHtml('<img src="/a.webp" srcset="/a-384.webp 384w, javascript:alert(1) 640w" />');
+    expect(output).not.toContain('srcset');
+    // The image itself survives — only the responsive rungs are lost.
+    expect(output).toContain('src="/a.webp"');
+  });
+
   it('unwraps disallowed tags but keeps their text', () => {
     expect(sanitizeHtml('<marquee>still readable</marquee>')).toBe('still readable');
   });

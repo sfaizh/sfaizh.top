@@ -19,6 +19,37 @@ describe('renderMarkdown', () => {
     expect(html).not.toMatch(/<p>\s*<figure/);
   });
 
+  /**
+   * A 1200×1600 upload in a 38.5rem column is roughly 7.7MB of bitmap once
+   * decoded. A dozen of them is past what a phone will hold, and iOS answers
+   * by refusing to decode and painting the broken-image glyph — so the rungs
+   * and the `sizes` that selects between them are load-bearing, not polish.
+   */
+  it('offers resized rungs for uploads, keeping the original as src', () => {
+    const url = 'https://abc123.public.blob.vercel-storage.com/blog/2026/08/photo-xyz.webp';
+    const { html } = renderMarkdown(`![A photo](${url})\n`);
+
+    expect(html).toContain(`src="${url}"`);
+    expect(html).toContain('srcset="');
+    expect(html).toContain('/_next/image?url=');
+    // The narrow rung is the one a phone picks; without it nothing is saved.
+    expect(html).toContain('&amp;w=384&amp;q=75 384w');
+    expect(html).toContain('&amp;w=1080&amp;q=75 1080w');
+    expect(html).toContain('sizes="(max-width: 41.5rem) calc(100vw - 3rem), 38.5rem"');
+  });
+
+  it('leaves images the optimiser cannot handle on a plain src', () => {
+    // Next refuses SVG unless `dangerouslyAllowSVG` is set, and a host missing
+    // from `remotePatterns` is a 400 — either would be a broken image.
+    const local = renderMarkdown('![Diagram](/content/img/vim-motions.svg)\n').html;
+    expect(local).not.toContain('srcset');
+    expect(local).toContain('src="/content/img/vim-motions.svg"');
+
+    const foreign = renderMarkdown('![Photo](https://i.imgur.com/abc.jpg)\n').html;
+    expect(foreign).not.toContain('srcset');
+    expect(foreign).toContain('src="https://i.imgur.com/abc.jpg"');
+  });
+
   it('keeps the language on a fenced code block and highlights it', () => {
     const { html } = renderMarkdown('```ts\nconst x = 1;\n```\n');
     expect(html).toContain('data-lang="ts"');

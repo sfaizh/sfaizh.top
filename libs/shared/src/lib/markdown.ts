@@ -12,6 +12,46 @@ export interface RenderResult {
 }
 
 /**
+ * Uploads live in Vercel Blob, and Next's optimiser is already configured to
+ * resize that host (`images.remotePatterns` in the blog's next.config.js).
+ * Matching on the hostname keeps everything else — local SVG diagrams, any
+ * surviving third-party link — on a plain `src`, which is what we want: the
+ * optimiser refuses SVG by default, and a host it has not been told about is a
+ * 400 rather than an image.
+ */
+const OPTIMISABLE_HOST = /^https:\/\/[^/]*\.public\.blob\.vercel-storage\.com\//;
+
+/**
+ * The rungs offered to the browser.
+ *
+ * Capped at 1080 deliberately. The reader's column is 38.5rem, so 1080 already
+ * covers a 2× display, and every rung past that costs decoded memory rather
+ * than detail — a phone holding a dozen 1200×1600 photographs is carrying
+ * around 108MB of bitmap, which is where iOS starts refusing to decode at all
+ * and paints the broken-image glyph instead.
+ */
+const IMAGE_WIDTHS = [384, 640, 828, 1080];
+
+/**
+ * The column the images actually occupy: `.prose-reader` is `max-width:
+ * 41.5rem` with `1.5rem` of padding a side. Getting this right is the whole
+ * point — `sizes` is what lets a phone choose the 384 rung instead of the 1080
+ * one, and a wrong value silently wastes the exercise.
+ */
+const IMAGE_SIZES = '(max-width: 41.5rem) calc(100vw - 3rem), 38.5rem';
+
+function optimised(href: string, width: number): string {
+  return `/_next/image?url=${encodeURIComponent(href)}&w=${width}&q=75`;
+}
+
+/** `srcset`/`sizes` for an upload; nothing at all for anything else. */
+function responsiveAttributes(href: string): string {
+  if (!OPTIMISABLE_HOST.test(href)) return '';
+  const srcset = IMAGE_WIDTHS.map((width) => `${optimised(href, width)} ${width}w`).join(', ');
+  return ` srcset="${escapeHtml(srcset)}" sizes="${escapeHtml(IMAGE_SIZES)}"`;
+}
+
+/**
  * Markdown → HTML for the reader. Rendering happens on the server; the client
  * receives sanitised HTML plus the heading outline that `]]` / `[[` jump
  * between.
@@ -55,9 +95,12 @@ export function renderMarkdown(markdown: string): RenderResult {
         const alt = escapeHtml(token.text ?? '');
         const title = token.title ? ` title="${escapeHtml(token.title)}"` : '';
         const caption = token.text ? `<figcaption>${alt}</figcaption>` : '';
+        // `src` stays the original upload so the image still resolves if the
+        // optimiser is ever unavailable; `srcset` is what a modern browser
+        // actually uses.
         return (
           `<figure class="md-figure">` +
-          `<img src="${escapeHtml(token.href)}" alt="${alt}"${title} loading="lazy" decoding="async" />` +
+          `<img src="${escapeHtml(token.href)}"${responsiveAttributes(token.href)} alt="${alt}"${title} loading="lazy" decoding="async" />` +
           `${caption}</figure>\n`
         );
       },
