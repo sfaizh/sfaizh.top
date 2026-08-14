@@ -22,15 +22,22 @@ export interface RenderResult {
 const OPTIMISABLE_HOST = /^https:\/\/[^/]*\.public\.blob\.vercel-storage\.com\//;
 
 /**
- * The rungs offered to the browser.
+ * The rungs offered to the browser, and the top one is the whole point.
  *
- * Capped at 1080 deliberately. The reader's column is 38.5rem, so 1080 already
- * covers a 2× display, and every rung past that costs decoded memory rather
- * than detail — a phone holding a dozen 1200×1600 photographs is carrying
- * around 108MB of bitmap, which is where iOS starts refusing to decode at all
- * and paints the broken-image glyph instead.
+ * A browser picks by CSS width × device pixel ratio, so the ladder's ceiling is
+ * really a cap on effective resolution. On a 390px phone this column is 342 CSS
+ * pixels; at DPR 3 — most current iPhones — that asks for 1026px, so any rung
+ * at or above 1080 gets taken and each photograph costs 6.2MB of bitmap. Times
+ * fourteen that is 87MB, against the 108MB that was already past what iOS will
+ * hold, and it answers by dropping decodes mid-scroll (the flicker) and then
+ * refusing them outright (the broken-image glyph).
+ *
+ * Stopping at 828 caps that phone at 2.4× for its column and 51MB for the post.
+ * The cost is a Retina desktop getting 1.34× rather than 2× — invisible on a
+ * photograph, where the eye has no edges to judge against, and the right trade
+ * against a reader whose images do not render at all.
  */
-const IMAGE_WIDTHS = [384, 640, 828, 1080];
+const IMAGE_WIDTHS = [384, 640, 828];
 
 /**
  * The column the images actually occupy: `.prose-reader` is `max-width:

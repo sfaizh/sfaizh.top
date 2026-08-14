@@ -32,10 +32,23 @@ describe('renderMarkdown', () => {
     expect(html).toContain(`src="${url}"`);
     expect(html).toContain('srcset="');
     expect(html).toContain('/_next/image?url=');
-    // The narrow rung is the one a phone picks; without it nothing is saved.
     expect(html).toContain('&amp;w=384&amp;q=75 384w');
-    expect(html).toContain('&amp;w=1080&amp;q=75 1080w');
     expect(html).toContain('sizes="(max-width: 41.5rem) calc(100vw - 3rem), 38.5rem"');
+  });
+
+  /**
+   * The ceiling is the load-bearing part. Selection is CSS width × DPR, so a
+   * DPR-3 phone asks for 1026px against this column and will take any rung at
+   * or above it — at which point each photograph is 6.2MB of bitmap and a post
+   * of fourteen is back over what iOS will decode.
+   */
+  it('stops the ladder below what a DPR-3 phone would otherwise claim', () => {
+    const url = 'https://abc123.public.blob.vercel-storage.com/blog/2026/08/photo-xyz.webp';
+    const { html } = renderMarkdown(`![A photo](${url})\n`);
+
+    expect(html).toContain('&amp;w=828&amp;q=75 828w');
+    expect(html).not.toContain('1080w');
+    expect(html).not.toContain('1200w');
   });
 
   it('leaves images the optimiser cannot handle on a plain src', () => {
