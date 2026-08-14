@@ -40,12 +40,26 @@ const OPTIMISABLE_HOST = /^https:\/\/[^/]*\.public\.blob\.vercel-storage\.com\//
 const IMAGE_WIDTHS = [384, 640, 828];
 
 /**
- * The column the images actually occupy: `.prose-reader` is `max-width:
- * 41.5rem` with `1.5rem` of padding a side. Getting this right is the whole
- * point — `sizes` is what lets a phone choose the 384 rung instead of the 1080
- * one, and a wrong value silently wastes the exercise.
+ * What to select for — which is not quite the same as what gets rendered.
+ *
+ * Above the fold of a phone this is honest: the column really is 38.5rem once
+ * `.prose-reader`'s 1.5rem padding is taken off its 41.5rem max-width.
+ *
+ * The `50vw` for narrow viewports is a deliberate under-declaration and the
+ * most important line here. A browser selects a rung by declared width × device
+ * pixel ratio, so an honest `calc(100vw - 3rem)` on a DPR-3 phone asks for
+ * 1026px and takes the biggest rung going — which is how a post of fourteen
+ * photographs ends up carrying tens of megabytes of bitmap, more than iOS will
+ * hold. It answers by dropping decodes as you scroll, and a dropped decode is
+ * an image that will not stay on screen.
+ *
+ * Halving the declared width pins every phone to the 640 rung regardless of
+ * DPR: 30MB for the whole post rather than 51MB, and a decode measured in tens
+ * of milliseconds rather than a stall. The photograph then renders at about
+ * 1.9× its CSS box, which on a photograph — no hard edges, no text — is not a
+ * difference anyone can see. Desktop is unaffected and still takes 828.
  */
-const IMAGE_SIZES = '(max-width: 41.5rem) calc(100vw - 3rem), 38.5rem';
+const IMAGE_SIZES = '(max-width: 41.5rem) 50vw, 38.5rem';
 
 function optimised(href: string, width: number): string {
   return `/_next/image?url=${encodeURIComponent(href)}&w=${width}&q=75`;
@@ -105,9 +119,16 @@ export function renderMarkdown(markdown: string): RenderResult {
         // `src` stays the original upload so the image still resolves if the
         // optimiser is ever unavailable; `srcset` is what a modern browser
         // actually uses.
+        //
+        // No `decoding="async"`. It is the default behaviour in all but name,
+        // so it was buying nothing, and iOS has a long tail of bugs where an
+        // explicit async hint on a lazily-loaded image leaves the box blank
+        // until something forces a repaint — which is the symptom this whole
+        // sequence of fixes has been chasing. Leaving the hint off lets each
+        // browser apply its own tuned heuristic.
         return (
           `<figure class="md-figure">` +
-          `<img src="${escapeHtml(token.href)}"${responsiveAttributes(token.href)} alt="${alt}"${title} loading="lazy" decoding="async" />` +
+          `<img src="${escapeHtml(token.href)}"${responsiveAttributes(token.href)} alt="${alt}"${title} loading="lazy" />` +
           `${caption}</figure>\n`
         );
       },

@@ -33,7 +33,29 @@ describe('renderMarkdown', () => {
     expect(html).toContain('srcset="');
     expect(html).toContain('/_next/image?url=');
     expect(html).toContain('&amp;w=384&amp;q=75 384w');
-    expect(html).toContain('sizes="(max-width: 41.5rem) calc(100vw - 3rem), 38.5rem"');
+  });
+
+  /**
+   * `sizes` under-declares on purpose for narrow viewports. Selection is
+   * declared width × DPR, so an honest `calc(100vw - 3rem)` puts a DPR-3 phone
+   * on the largest rung available and a post of fourteen photographs past what
+   * iOS will hold decoded — at which point images stop staying on screen.
+   * Halving it pins every phone to the 640 rung whatever its DPR.
+   */
+  it('under-declares the width on phones so they cannot claim the top rung', () => {
+    const url = 'https://abc123.public.blob.vercel-storage.com/blog/2026/08/photo-xyz.webp';
+    const { html } = renderMarkdown(`![A photo](${url})\n`);
+
+    expect(html).toContain('sizes="(max-width: 41.5rem) 50vw, 38.5rem"');
+    expect(html).not.toContain('calc(100vw - 3rem)');
+  });
+
+  it('leaves image decoding to the browser', () => {
+    const url = 'https://abc123.public.blob.vercel-storage.com/blog/2026/08/photo-xyz.webp';
+    const { html } = renderMarkdown(`![A photo](${url})\n`);
+
+    expect(html).toContain('loading="lazy"');
+    expect(html).not.toContain('decoding=');
   });
 
   /**
