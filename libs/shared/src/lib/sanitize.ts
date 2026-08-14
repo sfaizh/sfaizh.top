@@ -19,7 +19,7 @@ const ALLOWED_TAGS: Record<string, readonly string[]> = {
   blockquote: [], figure: ['class'], figcaption: [],
   pre: ['class', 'data-lang'], code: ['class'],
   a: ['href', 'title', 'target', 'rel'],
-  img: ['src', 'srcset', 'sizes', 'alt', 'title', 'width', 'height', 'loading', 'decoding'],
+  img: ['src', 'alt', 'title', 'width', 'height', 'loading', 'decoding'],
   table: [], thead: [], tbody: [], tr: [], th: ['align', 'scope'], td: ['align'],
   span: ['class'], div: ['class'], section: ['class'], details: [], summary: [],
 };
@@ -28,19 +28,6 @@ const ALLOWED_TAGS: Record<string, readonly string[]> = {
 const CLASS_PREFIXES = ['tok-', 'language-', 'md-', 'callout', 'footnote'];
 
 const URL_ATTRIBUTES = new Set(['href', 'src']);
-
-/**
- * `srcset` is a URL attribute wearing a disguise — a comma-separated list of
- * `url descriptor` pairs — so it needs the same scheme check as `src`, applied
- * to every candidate rather than to the string as a whole. One bad entry
- * rejects the lot; a partially-filtered srcset is harder to reason about than
- * none, and dropping it only costs the responsive rungs, never the image.
- */
-function isSafeSrcset(value: string): boolean {
-  const candidates = value.split(',').map((entry) => entry.trim()).filter(Boolean);
-  if (candidates.length === 0) return false;
-  return candidates.every((entry) => isSafeUrl(entry.split(/\s+/)[0]));
-}
 
 function isSafeUrl(value: string): boolean {
   const trimmed = value.trim();
@@ -77,7 +64,6 @@ function sanitizeAttributes(tag: string, raw: string): string {
     const probe = value.replace(/&#(\d+);?/g, (_, code) => String.fromCharCode(Number(code)));
 
     if (URL_ATTRIBUTES.has(name) && !isSafeUrl(probe)) continue;
-    if (name === 'srcset' && !isSafeSrcset(probe)) continue;
     if (name === 'class') {
       value = filterClasses(value);
       if (!value) continue;

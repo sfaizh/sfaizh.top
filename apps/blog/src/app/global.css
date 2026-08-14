@@ -55,6 +55,7 @@ body {
   font-size: 15px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -290,9 +291,7 @@ body {
   /* Hyphenation belongs to justified text; ragged-right prose just gets a
      column of broken words out of it. */
   hyphens: none;
-  /* `text-rendering: optimizeLegibility` is deliberately absent. Browsers kern
-     by default now, so it buys nothing, and it makes every reflow of a
-     long article re-shape the whole run — which on a phone is visible. */
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -517,45 +516,21 @@ body {
 .prose-reader .md-figure {
   margin: 1.8em 0;
 }
+/* Plain rules, on purpose.
+
+   No `aspect-ratio` reserving a box, and no `will-change` promoting the image
+   to its own compositor layer. Both were attempts at the mobile rendering
+   fault and both made it worse in a new way: the reserved ratio was a guess
+   that snapped the box whenever the decode was dropped, and the layer hint
+   asked the phone to hold every photograph resident at once. The image is
+   simply laid out at its natural proportions once it has loaded. */
 .prose-reader .md-figure img {
   width: 100%;
   height: auto;
-
-  /* A first guess at the box, and nothing more.
-
-     `auto 16 / 9` means "use the intrinsic ratio when there is one, otherwise
-     16:9". It stops an image that has not loaded from collapsing to zero
-     height, which is worth having — but read the second half carefully: the
-     fallback applies whenever the intrinsic ratio is *unavailable*, and on a
-     phone that includes every time the decode is evicted under memory
-     pressure, not just before the first load. A portrait photograph then snaps
-     between its real ratio and 16:9 as it passes through the viewport, which
-     is a reflow, which forces a re-raster, which is more memory pressure.
-
-     So this rule is deliberately temporary: `Reader.tsx` overwrites it with an
-     inline `aspect-ratio` carrying the real dimensions as soon as each image
-     reports them, and from that point the box is fixed. If the markdown ever
-     starts carrying real dimensions (the upload path already computes them),
-     emit them as `width`/`height` attributes and this guess can go entirely. */
-  aspect-ratio: auto 16 / 9;
-
   border-radius: 8px;
   border: 1px solid var(--ctp-surface0);
   background: var(--ctp-mantle);
   display: block;
-
-  /* Deliberately NOT `will-change: transform`.
-
-     It looks like the fix for images flashing during scroll, and on a desktop
-     GPU it is. On a phone it is the cause: `will-change` promotes *every*
-     figure to its own compositor layer for the whole life of the page, so a
-     post with a dozen photographs asks iOS to hold a dozen full-size textures
-     resident at once. Past the device's texture budget the browser stops
-     honouring the promotion and starts dropping the decodes outright — which
-     is the broken-image glyph, and the flicker it was supposed to prevent.
-
-     Left alone, the browser rasterises what is on screen and nothing more,
-     which is the behaviour we actually want here. */
 }
 .prose-reader figcaption {
   margin-top: 0.6em;

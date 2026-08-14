@@ -20,69 +20,22 @@ describe('renderMarkdown', () => {
   });
 
   /**
-   * A 1200×1600 upload in a 38.5rem column is roughly 7.7MB of bitmap once
-   * decoded. A dozen of them is past what a phone will hold, and iOS answers
-   * by refusing to decode and painting the broken-image glyph — so the rungs
-   * and the `sizes` that selects between them are load-bearing, not polish.
+   * The image tag stays plain. Every attribute that has been tried here —
+   * `srcset`, `sizes`, `loading`, `decoding`, a rewritten `src` pointing at an
+   * image optimiser — was aimed at a mobile rendering fault, and each one
+   * either changed nothing or moved the symptom. The URL the author wrote is
+   * the URL the browser fetches.
    */
-  it('offers resized rungs for uploads, keeping the original as src', () => {
+  it('emits a plain image tag with no loading or optimisation hints', () => {
     const url = 'https://abc123.public.blob.vercel-storage.com/blog/2026/08/photo-xyz.webp';
     const { html } = renderMarkdown(`![A photo](${url})\n`);
 
-    expect(html).toContain(`src="${url}"`);
-    expect(html).toContain('srcset="');
-    expect(html).toContain('/_next/image?url=');
-    expect(html).toContain('&amp;w=384&amp;q=75 384w');
-  });
-
-  /**
-   * `sizes` under-declares on purpose for narrow viewports. Selection is
-   * declared width × DPR, so an honest `calc(100vw - 3rem)` puts a DPR-3 phone
-   * on the largest rung available and a post of fourteen photographs past what
-   * iOS will hold decoded — at which point images stop staying on screen.
-   * Halving it pins every phone to the 640 rung whatever its DPR.
-   */
-  it('under-declares the width on phones so they cannot claim the top rung', () => {
-    const url = 'https://abc123.public.blob.vercel-storage.com/blog/2026/08/photo-xyz.webp';
-    const { html } = renderMarkdown(`![A photo](${url})\n`);
-
-    expect(html).toContain('sizes="(max-width: 41.5rem) 50vw, 38.5rem"');
-    expect(html).not.toContain('calc(100vw - 3rem)');
-  });
-
-  it('leaves image decoding to the browser', () => {
-    const url = 'https://abc123.public.blob.vercel-storage.com/blog/2026/08/photo-xyz.webp';
-    const { html } = renderMarkdown(`![A photo](${url})\n`);
-
-    expect(html).toContain('loading="lazy"');
+    expect(html).toContain(`<img src="${url}" alt="A photo" />`);
+    expect(html).not.toContain('srcset');
+    expect(html).not.toContain('sizes=');
+    expect(html).not.toContain('loading=');
     expect(html).not.toContain('decoding=');
-  });
-
-  /**
-   * The ceiling is the load-bearing part. Selection is CSS width × DPR, so a
-   * DPR-3 phone asks for 1026px against this column and will take any rung at
-   * or above it — at which point each photograph is 6.2MB of bitmap and a post
-   * of fourteen is back over what iOS will decode.
-   */
-  it('stops the ladder below what a DPR-3 phone would otherwise claim', () => {
-    const url = 'https://abc123.public.blob.vercel-storage.com/blog/2026/08/photo-xyz.webp';
-    const { html } = renderMarkdown(`![A photo](${url})\n`);
-
-    expect(html).toContain('&amp;w=828&amp;q=75 828w');
-    expect(html).not.toContain('1080w');
-    expect(html).not.toContain('1200w');
-  });
-
-  it('leaves images the optimiser cannot handle on a plain src', () => {
-    // Next refuses SVG unless `dangerouslyAllowSVG` is set, and a host missing
-    // from `remotePatterns` is a 400 — either would be a broken image.
-    const local = renderMarkdown('![Diagram](/content/img/vim-motions.svg)\n').html;
-    expect(local).not.toContain('srcset');
-    expect(local).toContain('src="/content/img/vim-motions.svg"');
-
-    const foreign = renderMarkdown('![Photo](https://i.imgur.com/abc.jpg)\n').html;
-    expect(foreign).not.toContain('srcset');
-    expect(foreign).toContain('src="https://i.imgur.com/abc.jpg"');
+    expect(html).not.toContain('/_next/image');
   });
 
   it('keeps the language on a fenced code block and highlights it', () => {

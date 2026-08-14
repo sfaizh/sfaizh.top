@@ -181,13 +181,7 @@ describe('Shell', () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith('/admin'));
   });
 
-  /**
-   * The stylesheet's `aspect-ratio: auto 16 / 9` is a guess that applies
-   * whenever the intrinsic ratio is unavailable — including every time a phone
-   * evicts the decode. Pinning the real ratio is what stops the box, and the
-   * prose beneath it, from snapping back and forth as the image scrolls past.
-   */
-  it('pins an image box to its real aspect ratio once the image reports one', async () => {
+  it('renders a post image without touching its layout', async () => {
     const input = await renderShell();
     api.rendered.mockResolvedValue({
       ...TEST_POSTS[0],
@@ -197,7 +191,6 @@ describe('Shell', () => {
     await run(input, 'open building-a-terminal-blog');
 
     const image = (await screen.findByAltText('a photo')) as HTMLImageElement;
-    expect(image.style.aspectRatio).toBe('');
 
     Object.defineProperty(image, 'naturalWidth', { value: 1200, configurable: true });
     Object.defineProperty(image, 'naturalHeight', { value: 1600, configurable: true });
@@ -205,24 +198,8 @@ describe('Shell', () => {
       image.dispatchEvent(new Event('load'));
     });
 
-    expect(image.style.aspectRatio).toBe('1200 / 1600');
-  });
-
-  it('leaves an image that never reports a size to the stylesheet fallback', async () => {
-    const input = await renderShell();
-    api.rendered.mockResolvedValue({
-      ...TEST_POSTS[0],
-      html: '<figure class="md-figure"><img src="https://example.test/broken.webp" alt="broken" /></figure>',
-      headings: [],
-    });
-    await run(input, 'open building-a-terminal-blog');
-
-    const image = (await screen.findByAltText('broken')) as HTMLImageElement;
-    await act(async () => {
-      image.dispatchEvent(new Event('load'));
-    });
-
-    // 0 × 0 is not a ratio; pinning it would collapse the box outright.
+    // The reader no longer writes an inline aspect-ratio: the image is laid
+    // out at its natural proportions and nothing intervenes.
     expect(image.style.aspectRatio).toBe('');
   });
 
